@@ -4,10 +4,30 @@ POKEDEX_FILE="pokedex.cfg"
 TIPOS_FILE="tipos.cfg"
 CONFIG_FILE="config.cfg"
 
+declare -A TABLA_TIPOS=(
+  ["normal"]="-ro fa"
+  ["lucha"]="no ro hi-vo ve bi fa ps"
+  ["volador"]="lu bi pl-ro el"
+  ["veneno"]="bi pl-ti ro fa"
+  ["tierra"]="ve ro el-vo bi pl"
+  ["roca"]="vo bi hi-lu ti"
+  ["bicho"]="ve ro fa pl ps-lu vo"
+  ["fantasma"]="-no ps"
+  ["fuego"]="ro bi pl hi-ag dr"
+  ["agua"]="ti fu-pl dr"
+  ["planta"]="ti ag-vo ve ro bi fu dr"
+  ["electrico"]="vo ag-ti pl dr"
+  ["psiquico"]="lu ve-"
+  ["hielo"]="vo ti pl dr-ag"
+  ["dragon"]="-"
+)
+
 LOG_FILE="log.cfg"
 NOMBRE_JUGADOR=""
 VICTORIAS=""
 POKEMON_JUGADOR=""
+
+
 
 function usage() {
   echo "Bashémon: Proyecto SSOOI"
@@ -106,34 +126,11 @@ function mJugar() {
 
   done
 
-
   # Choose pokemons 
   player_pokemon=$(randRange 0 151)
   enemy_pokemon=$(randRange 0 151)
 
-
   printf "${pokenames[$player_pokemon]} vs. ${pokenames[$enemy_pokemon]}\n\n"
-
-
-  # BIG FAT TABLE
-  declare -A types=(
-    ["normal"]="-ro fa"
-    ["lucha"]="no ro hi-vo ve bi fa ps"
-    ["volador"]="lu bi pl-ro el"
-    ["veneno"]="bi pl-ti ro fa"
-    ["tierra"]="ve ro el-vo bi pl"
-    ["roca"]="vo bi hi-lu ti"
-    ["bicho"]="ve ro fa pl ps-lu vo"
-    ["fantasma"]="-no ps"
-    ["fuego"]="ro bi pl hi-ag dr"
-    ["agua"]="ti fu-pl dr"
-    ["planta"]="ti ag-vo ve ro bi fu dr"
-    ["electrico"]="vo ag-ti pl dr"
-    ["psiquico"]="lu ve-"
-    ["hielo"]="vo ti pl dr-ag"
-    ["dragon"]="-"
-  )
-
 
   # Sleep for intensity
   printf "${pokenames[$player_pokemon]} le pega tremendos putazos a ${pokenames[$enemy_pokemon]}"
@@ -149,7 +146,7 @@ function mJugar() {
   player_type=${poketypes[$player_pokemon]}
   enemy_type=$(echo ${poketypes[$enemy_pokemon]} | cut -b -2)
 
-  typeline=${types[$player_type]}
+  typeline=${TABLA_TIPOS[$player_type]}
 
   if echo $typeline | cut -d '-' -f 1 | grep -q "$enemy_type"; then
     # Player wins
