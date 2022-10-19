@@ -84,8 +84,10 @@ function mJugar() {
 
   for i in {0..151..1}
   do
-    pokenames[$i]=$(sed "$(($i+1)) q;d" pokedex.cfg | cut -d '=' -f 2)
-    poketypes[$i]=$(sed "$(($i+1)) q;d" tipos.cfg | cut -d '=' -f 2)
+    padded_i=$(printf "%03d" $(($i + 1)))
+    pokenames[$i]=$(grep "$padded_i" pokedex.cfg | cut -d '=' -f 2)
+    poketypes[$i]=$(grep "$padded_i" tipos.cfg | cut -d '=' -f 2)
+
   done
 
 
