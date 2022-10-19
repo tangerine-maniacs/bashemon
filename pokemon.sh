@@ -168,7 +168,14 @@ function mEstadisticas() {
 }
 
 function mReinicio() {
-  :
+  # Vaciar el archivo log
+  printf "" > $LOG_FILE 
+
+  # Cambiar las configuraciones
+  echo "NOMBRE=" > config.cfg
+  echo "POKEMON=" >> config.cfg
+  echo "VICTORIAS=" >> config.cfg
+  echo "LOG=$LOG_FILE" >> config.cfg
 }
 
 function mSalir() {
@@ -181,6 +188,7 @@ function log() {
   hora=$(date +%H)
   echo "$fecha | $hora | $1 | $2 | $3 | $4 | $5" >> $LOG_FILE
 }
+
 function readLog() {
   :
 }
@@ -201,6 +209,7 @@ function coolGraphics() {
 
 if [ $# -eq 0 ]; then
   # programa
+  read_config
   menuPrincipal
 elif [[ $# -eq 1 && "$1" == "-g" ]]; then
   # nuestros nombres
