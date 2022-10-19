@@ -38,7 +38,7 @@ function usage() {
 
 # Esta función asume que el fichero config.cfg incluye esas claves, sólo esas claves
 # y sólo una de cada.
-function read_config() {
+function readConfig() {
   LOG_FILE=$(grep '^LOG=' $CONFIG_FILE | sed -e 's/LOG=//')
   if [ -z $LOG_FILE ]; then
     return 1
@@ -53,7 +53,7 @@ function read_config() {
   POKEMON_JUGADOR=$(grep '^POKEMON=' $CONFIG_FILE | sed -e 's/POKEMON=//')
 }
 
-function write_config() {
+function writeConfig() {
   printf "NOMBRE=${NOMBRE_JUGADOR}\nPOKEMON=${POKEMON_JUGADOR}\nVICTORIAS=${VICTORIAS}\nLOG=${LOG_FILE}" > $CONFIG_FILE
 }
 
@@ -176,7 +176,7 @@ function mReinicio() {
   POKEMON=""
   VICTORIAS=""
   # LOG_FILE="" mantenemos log_file
-  write_config
+  writeConfig
 }
 
 function mSalir() {
@@ -210,7 +210,7 @@ function coolGraphics() {
 
 if [ $# -eq 0 ]; then
   # programa
-  read_config
+  readConfig
   menuPrincipal
 elif [[ $# -eq 1 && "$1" == "-g" ]]; then
   # nuestros nombres
