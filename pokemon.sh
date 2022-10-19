@@ -19,19 +19,71 @@ function writeCfg() {
   :
 }
 
-function mainMenu() {
+function menuPrincipal {
+  while true; do
+    echo "C) CONFIGURACION"
+    echo "J) JUGAR"
+    echo "E) ESTADÍSTICAS"
+    echo "R) REINICIO"
+    echo "S) SALIR"
+    read -p ' "POKEMON EDICION USAL". Introduzca una opción >>' opcion
+    case ${opcion^^} in
+      "C")
+        mConfig;;
+      "J")
+        mJugar;;
+      "E")
+        mEstadisticas;;
+      "R")
+        mReinicio;;
+      "S")
+        mSalir;;
+      *) 
+        echo "Opción incorrecta";;
+    esac
+  done
+}
+
+function mConfig {
+  local esOpcionValida=false
+  while ! $esOpcionValida; do
+    echo "N) CAMBIAR NOMBRE DEL JUGADOR"
+    echo "P) CAMBIAR POKÉMON ELEGIDO"
+    echo "V) CAMBIAR Nº VICTORIAS"
+    echo "L) CAMBIAR UBICACIÓN DE ARCHIVO DE LOG"
+    echo "A) ATRÁS"
+    read -p ' ¿Qué desea hacer? >>' opcion
+    case ${opcion^^} in
+      "N")
+        local esOpcionValida=true
+        echo "WIP";;
+      "P")
+        local esOpcionValida=true
+        echo "WIP";;
+      "V")
+        local esOpcionValida=true
+        echo "WIP";;
+      "L")
+        local esOpcionValida=true
+        echo "WIP";;
+      "A")
+        local esOpcionValida=true
+        return;;
+      *) 
+        echo "Opción incorrecta";;
+    esac
+  done
+}
+
+function mJugar() {
   :
 }
 
-function configMenu() {
+function mEstadisticas() {
   :
 }
 
-function play() {
-  :
-}
-
-function statsMenu() {
+function mReinicio() {
   :
 }
 
@@ -58,7 +110,7 @@ function coolGraphics() {
 
 if [ $# -eq 0 ]; then
   # programa
-  :
+  menuPrincipal
 elif [[ $# -eq 1 && "$1" == "-g" ]]; then
   # nuestros nombres
   echo "Grupo compuesto por:"
