@@ -5,6 +5,9 @@ TIPOS_FILE="tipos.cfg"
 CONFIG_FILE="config.cfg"
 
 LOG_FILE="log.cfg"
+NOMBRE_JUGADOR=""
+VICTORIAS=""
+POKEMON_JUGADOR=""
 
 function usage() {
   echo "Bashémon: Proyecto SSOOI"
@@ -26,12 +29,12 @@ function read_config() {
     VICTORIAS=0 # victorias va a ser 0 por defecto (si no existe)
   fi
 
-  NOMBRE_JUGADOR=$(grep '^NOMBRE=' $CONFIG_FILE | sed -e 's/VICTORIAS=//')
-  POKEMON_JUGADOR=$(grep '^POKEMON=' $CONFIG_FILE | sed -e 's/VICTORIAS=//')
+  NOMBRE_JUGADOR=$(grep '^NOMBRE=' $CONFIG_FILE | sed -e 's/NOMBRE=//')
+  POKEMON_JUGADOR=$(grep '^POKEMON=' $CONFIG_FILE | sed -e 's/POKEMON=//')
 }
 
-function writeCfg() {
-  :
+function write_config() {
+  printf "NOMBRE=${NOMBRE_JUGADOR}\nPOKEMON=${POKEMON_JUGADOR}\nVICTORIAS=${VICTORIAS}\nLOG=${LOG_FILE}" > $CONFIG_FILE
 }
 
 function menuPrincipal {
