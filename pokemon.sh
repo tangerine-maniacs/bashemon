@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+POKEDEX_FILE="pokedex.cfg"
+TIPOS_FILE="tipos.cfg"
+CONFIG_FILE="config.cfg"
+
 function usage() {
   echo "Bashémon: Proyecto SSOOI"
   echo "Uso: $0 [-g]"
@@ -34,9 +38,15 @@ function statsMenu() {
 function log() {
   :
 }
-
-function randRange() {
+function readLog() {
   :
+}
+
+# randRange $1 $2 genera un número aleatorio en [$1, $2)
+function randRange() {
+  local min=$1
+  local max=$2
+  echo $((min + RANDOM % (max - min)))
 }
 
 function loadCoolPokegraphics() {
