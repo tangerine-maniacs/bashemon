@@ -13,8 +13,21 @@ function usage() {
   exit 1
 }
 
-function readCfg() {
-  :
+# Esta función asume que el fichero config.cfg incluye esas claves, sólo esas claves
+# y sólo una de cada.
+function read_config() {
+  LOG_FILE=$(grep '^LOG=' $CONFIG_FILE | sed -e 's/LOG=//')
+  if [ -z $LOG_FILE ]; then
+    return 1
+  fi
+
+  VICTORIAS=$(grep '^VICTORIAS=' $CONFIG_FILE | sed -e 's/VICTORIAS=//')
+  if [ -z $VICTORIAS ]; then
+    VICTORIAS=0 # victorias va a ser 0 por defecto (si no existe)
+  fi
+
+  NOMBRE_JUGADOR=$(grep '^NOMBRE=' $CONFIG_FILE | sed -e 's/VICTORIAS=//')
+  POKEMON_JUGADOR=$(grep '^POKEMON=' $CONFIG_FILE | sed -e 's/VICTORIAS=//')
 }
 
 function writeCfg() {
