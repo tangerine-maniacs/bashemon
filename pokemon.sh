@@ -175,10 +175,11 @@ function mReinicio() {
   printf "" > $LOG_FILE 
 
   # Cambiar las configuraciones
-  echo "NOMBRE=" > config.cfg
-  echo "POKEMON=" >> config.cfg
-  echo "VICTORIAS=" >> config.cfg
-  echo "LOG=$LOG_FILE" >> config.cfg
+  NOMBRE_JUGADOR=""
+  POKEMON=""
+  VICTORIAS=""
+  # LOG_FILE="" mantenemos log_file
+  write_config
 }
 
 function mSalir() {
