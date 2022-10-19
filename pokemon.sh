@@ -30,7 +30,7 @@ NOMBRE_JUGADOR=""
 VICTORIAS=""
 POKEMON_JUGADOR=""
 
-function usage() {
+function usage {
   echo "Bashémon: Proyecto SSOOI"
   echo "Uso: $0 [-g]"
   echo " -g: Mostrar los nombres de los integrantes del equipo"
@@ -39,7 +39,7 @@ function usage() {
 
 # Esta función asume que el fichero config.cfg incluye esas claves, sólo esas claves
 # y sólo una de cada.
-function readConfig() {
+function readConfig {
   LOG_FILE=$(grep '^LOG=' $CONFIG_FILE | sed -e 's/LOG=//')
   if [ -z $LOG_FILE ]; then
     return 1
@@ -54,8 +54,21 @@ function readConfig() {
   POKEMON_JUGADOR=$(grep '^POKEMON=' $CONFIG_FILE | sed -e 's/POKEMON=//')
 }
 
-function writeConfig() {
+function writeConfig {
   printf "NOMBRE=${NOMBRE_JUGADOR}\nPOKEMON=${POKEMON_JUGADOR}\nVICTORIAS=${VICTORIAS}\nLOG=${LOG_FILE}" > $CONFIG_FILE
+}
+
+# Read pokemons in a (Pokemon, type) form 
+declare -a pokenames 
+declare -a poketypes
+function readPokes {
+  # TODO: Make pokenames and poketypes uppercase
+  for i in {0..151..1}
+  do
+    padded_i=$(printf "%03d" $(($i + 1)))
+    pokenames[$i]=$(grep "$padded_i" pokedex.cfg | cut -d '=' -f 2)
+    poketypes[$i]=$(grep "$padded_i" tipos.cfg | cut -d '=' -f 2)
+  done
 }
 
 function menuPrincipal {
@@ -121,19 +134,7 @@ function mConfig {
   done
 }
 
-function mJugar() {
-  # Read pokemons in a (Pokemon, type) form 
-  declare -a pokenames 
-  declare -a poketypes
-
-  for i in {0..151..1}
-  do
-    padded_i=$(printf "%03d" $(($i + 1)))
-    pokenames[$i]=$(grep "$padded_i" pokedex.cfg | cut -d '=' -f 2)
-    poketypes[$i]=$(grep "$padded_i" tipos.cfg | cut -d '=' -f 2)
-
-  done
-
+function mJugar {
   # Choose pokemons 
   player_pokemon=$(randRange 0 151)
   enemy_pokemon=$(randRange 0 151)
@@ -158,22 +159,74 @@ function mJugar() {
 
   if echo $typeline | cut -d '-' -f 1 | grep -q "$enemy_type"; then
     # Player wins
-    echo "${pokenames[$player_pokemon]} detruye a "${pokenames[$enemy_pokemon]} 
+    echo "${pokenames[$player_pokemon]} detruye a ${pokenames[$enemy_pokemon]}" 
+    log $NOMBRE_JUGADOR ${pokenames[$player_pokemon]} ${pokenames[$enemy_pokemon]} "Jugador"
   elif echo $typeline | cut -d '-' -f 2 | grep -q "$enemy_type"; then
     # Enemy wins
     echo "${pokenames[$enemy_pokemon]} esquiva y te cambia el horoscopo de severa contusion craneal"
+    log $NOMBRE_JUGADOR ${pokenames[$player_pokemon]} ${pokenames[$enemy_pokemon]} "Rival"
   else
     # Draw
     echo "Empate!"
-
+    # TODO: Preguntar si ponemos empate en caso de que empate
+    log $NOMBRE_JUGADOR ${pokenames[$player_pokemon]} ${pokenames[$enemy_pokemon]} "Empate"
   fi
 }
 
-function mEstadisticas() {
-  :
+# TODO: Si hay varios con el máximo, cuál cogemos?
+function maxDicc {
+  local -n dicc=$1
+
+  max_key=!dicc[0]
+  max_val=dicc[0]
+
+  for key in "${!dicc[@]}"; do
+    if [[ ${dicc[$key]} -gt $max_val ]]; then
+      max_val=${dicc[$key]}
+      max_key=$key
+    fi
+  done
+
+  echo $max_key 
 }
 
-function mReinicio() {
+function mEstadisticas {
+  local ncombates=0
+  local nganados=0
+ 
+  declare -A poke_ganados_jugador
+  declare -A poke_ganados_rival
+
+  while read -r line; do
+    ncombates=$((ncombates+1))
+
+    # Si pone jugador en la línea, ese combate lo ha ganado el jugador.
+    # FIX: Que el jugador se llame 'Jugador' o que tenga '|' en su nombre
+    if grep -q 'Jugador' <<< $line; then
+      nganados=$((nganados+1))
+      # Nombre del pokemon ganador
+      local poke_nombre=$(echo $line | cut -d'|' -f4 | xargs)
+      poke_ganados_jugador[$poke_nombre]=$((${poke_ganados_jugador[$poke_nombre]}+1))
+    elif grep -q 'Rival' <<< $line; then
+      # Nombre del pokemon ganador
+      local poke_nombre=$(echo $line | cut -d'|' -f5 | xargs)
+
+      poke_ganados_rival[$poke_nombre]=$((${poke_ganados_rival[$poke_nombre]}+1))
+    fi
+  done < info.log
+
+
+  # Convertir diccionario a lista n-victorias, nombres de pokemon
+  echo "Número total de combates: $ncombates"
+  echo "Número de combates ganados por el jugador: $nganados"
+
+  max_pgj=$(maxDicc poke_ganados_jugador)
+  max_pgr=$(maxDicc poke_ganados_rival)
+  echo "Pokémon del jugador con más victorias (${poke_ganados_jugador[$max_pgj]}): $max_pgj"
+  echo "Pokémon del rival con más victorias (${poke_ganados_rival[$max_pgr]}): $max_pgr"
+}
+
+function mReinicio {
   # Vaciar el archivo log
   printf "" > $LOG_FILE 
 
@@ -185,37 +238,35 @@ function mReinicio() {
   writeConfig
 }
 
-function mSalir() {
+function mSalir {
   exit 0
 }
 
 # log $jugador $pokemonJugador $pokemonRival $ganadorPartida - guardar datos en el fichero log
-function log() {
+function log {
   fecha=$(date +%d%m%Y)
-  hora=$(date +%H)
+  hora=$(date +%H) # TODO: Hora? Hora y minutos? 
   echo "$fecha | $hora | $1 | $2 | $3 | $4 | $5" >> $LOG_FILE
 }
 
-function readLog() {
-  :
-}
-
 # randRange $1 $2 genera un número aleatorio en [$1, $2)
-function randRange() {
+function randRange {
   local min=$1
   local max=$2
   echo $((min + $RANDOM % (max - min)))
 }
 
-function loadCoolPokegraphics() {
+function loadCoolPokegraphics {
   :
 }
-function coolGraphics() {
+function coolGraphics {
   :
 }
 
 if [ $# -eq 0 ]; then
   # programa
+  echo "Cargando pokémon..."
+  readPokes
   readConfig
   menuPrincipal
 elif [[ $# -eq 1 && "$1" == "-g" ]]; then
