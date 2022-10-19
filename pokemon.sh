@@ -78,7 +78,74 @@ function mConfig {
 }
 
 function mJugar() {
-  :
+  # Read pokemons in a (Pokemon, type) form 
+  declare -a pokenames 
+  declare -a poketypes
+
+  for i in {0..151..1}
+  do
+    pokenames[$i]=$(sed "$(($i+1)) q;d" pokedex.cfg | cut -d '=' -f 2)
+    poketypes[$i]=$(sed "$(($i+1)) q;d" tipos.cfg | cut -d '=' -f 2)
+  done
+
+
+  # Choose pokemons 
+  player_pokemon=$(randRange 0 151)
+  enemy_pokemon=$(randRange 0 151)
+
+
+  printf "${pokenames[$player_pokemon]} vs. ${pokenames[$enemy_pokemon]}\n\n"
+
+
+  # BIG FAT TABLE
+  declare -A types=(
+    ["normal"]="-ro fa"
+    ["lucha"]="no ro hi-vo ve bi fa ps"
+    ["volador"]="lu bi pl-ro el"
+    ["veneno"]="bi pl-ti ro fa"
+    ["tierra"]="ve ro el-vo bi pl"
+    ["roca"]="vo bi hi-lu ti"
+    ["bicho"]="ve ro fa pl ps-lu vo"
+    ["fantasma"]="-no ps"
+    ["fuego"]="ro bi pl hi-ag dr"
+    ["agua"]="ti fu-pl dr"
+    ["planta"]="ti ag-vo ve ro bi fu dr"
+    ["electrico"]="vo ag-ti pl dr"
+    ["psiquico"]="lu ve-"
+    ["hielo"]="vo ti pl dr-ag"
+    ["dragon"]="-"
+  )
+
+
+  # Sleep for intensity
+  printf "${pokenames[$player_pokemon]} le pega tremendos putazos a ${pokenames[$enemy_pokemon]}"
+  sleeps=$(randRange 2 6)
+  for i in $(seq 0 $sleeps)
+  do
+    printf '.'
+    
+    sleep 1
+  done
+
+  # Check who wins
+  player_type=${poketypes[$player_pokemon]}
+  enemy_type=$(echo ${poketypes[$enemy_pokemon]} | cut -b -2)
+
+  typeline=${types[$player_type]}
+
+  if echo $typeline | cut -d '-' -f 1 | grep -q "$enemy_type"; then
+    # Player wins
+    echo "${pokenames[$player_pokemon]} detruye a "${pokenames[$enemy_pokemon]} 
+
+  elif echo $typeline | cut -d '-' -f 2 | grep -q "$enemy_type"; then
+    # Enemy wins
+    echo "${pokenames[$enemy_pokemon]} esquiva y te cambia el horoscopo de severa contusion craneal"
+
+  else
+    # Draw
+    echo "Empate!"
+
+  fi
 }
 
 function mEstadisticas() {
