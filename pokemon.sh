@@ -159,11 +159,9 @@ function mJugar() {
   if echo $typeline | cut -d '-' -f 1 | grep -q "$enemy_type"; then
     # Player wins
     echo "${pokenames[$player_pokemon]} detruye a "${pokenames[$enemy_pokemon]} 
-
   elif echo $typeline | cut -d '-' -f 2 | grep -q "$enemy_type"; then
     # Enemy wins
     echo "${pokenames[$enemy_pokemon]} esquiva y te cambia el horoscopo de severa contusion craneal"
-
   else
     # Draw
     echo "Empate!"
