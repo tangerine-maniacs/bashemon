@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# === CONSTANTES ===
 POKEDEX_FILE="pokedex.cfg"
 TIPOS_FILE="tipos.cfg"
 CONFIG_FILE="config.cfg"
@@ -22,12 +23,12 @@ declare -A TABLA_TIPOS=(
   ["dragon"]="-"
 )
 
-LOG_FILE="log.cfg"
+# === config.cfg === 
+# Valores cargados de config.cfg
+LOG_FILE=""
 NOMBRE_JUGADOR=""
 VICTORIAS=""
 POKEMON_JUGADOR=""
-
-
 
 function usage() {
   echo "Bashémon: Proyecto SSOOI"
@@ -85,25 +86,32 @@ function menuPrincipal {
 function mConfig {
   local esOpcionValida=false
   while ! $esOpcionValida; do
-    echo "N) CAMBIAR NOMBRE DEL JUGADOR"
-    echo "P) CAMBIAR POKÉMON ELEGIDO"
-    echo "V) CAMBIAR Nº VICTORIAS"
-    echo "L) CAMBIAR UBICACIÓN DE ARCHIVO DE LOG"
+    echo "N) CAMBIAR NOMBRE DEL JUGADOR          (Actual: ${NOMBRE_JUGADOR})"
+    echo "P) CAMBIAR POKÉMON ELEGIDO             (Actual: ${POKEMON_JUGADOR})"
+    echo "V) CAMBIAR Nº VICTORIAS                (Actual: ${VICTORIAS})"
+    echo "L) CAMBIAR UBICACIÓN DE FICHERO DE LOG (Actual: ${LOG_FILE})"
     echo "A) ATRÁS"
     read -p ' ¿Qué desea hacer? >>' opcion
     case ${opcion^^} in
       "N")
         local esOpcionValida=true
-        echo "WIP";;
+        read -p "Introduce tu nombre de jugador: " NOMBRE_JUGADOR
+        writeConfig;;
       "P")
         local esOpcionValida=true
-        echo "WIP";;
+        # TODO: No dejar elegir un pokémon que no existe.
+        read -p "Introduce tu pokemon elegido: " POKEMON_JUGADOR
+        writeConfig;;
       "V")
         local esOpcionValida=true
-        echo "WIP";;
+        # TODO: Asegurarse de que victorias es un número.
+        read -p "Introduce el número de victorias hasta el momento: " VICTORIAS
+        writeConfig;;
       "L")
         local esOpcionValida=true
-        echo "WIP";;
+        # TODO: Dar error si la nueva ubicación es incorrecta
+        read -p "Introduce la nueva ubicación del fichero de log: " LOG_FILE
+        writeConfig;;
       "A")
         local esOpcionValida=true
         return;;
