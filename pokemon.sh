@@ -87,6 +87,9 @@ function mReinicio() {
   :
 }
 
+function mSalir() {
+  exit 0
+}
 function log() {
   :
 }
@@ -98,7 +101,7 @@ function readLog() {
 function randRange() {
   local min=$1
   local max=$2
-  echo $((min + RANDOM % (max - min)))
+  echo $((min + $RANDOM % (max - min)))
 }
 
 function loadCoolPokegraphics() {
