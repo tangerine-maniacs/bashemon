@@ -4,6 +4,8 @@ POKEDEX_FILE="pokedex.cfg"
 TIPOS_FILE="tipos.cfg"
 CONFIG_FILE="config.cfg"
 
+LOG_FILE="log.cfg"
+
 function usage() {
   echo "Bashémon: Proyecto SSOOI"
   echo "Uso: $0 [-g]"
@@ -90,8 +92,12 @@ function mReinicio() {
 function mSalir() {
   exit 0
 }
+
+# log $jugador $pokemonJugador $pokemonRival $ganadorPartida - guardar datos en el fichero log
 function log() {
-  :
+  fecha=$(date +%d%m%Y)
+  hora=$(date +%H)
+  echo "$fecha | $hora | $1 | $2 | $3 | $4 | $5" >> $LOG_FILE
 }
 function readLog() {
   :
