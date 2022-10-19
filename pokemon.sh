@@ -4,6 +4,7 @@ function usage() {
   echo "Bashémon: Proyecto SSOOI"
   echo "Uso: $0 [-g]"
   echo " -g: Mostrar los nombres de los integrantes del equipo"
+  exit 1
 }
 
 function readCfg() {
@@ -50,7 +51,10 @@ if [ $# -eq 0 ]; then
   :
 elif [[ $# -eq 1 && "$1" == "-g" ]]; then
   # nuestros nombres
-  :
+  echo "Grupo compuesto por:"
+  echo "Pablo Pérez Rodríguez (712122549H) <pab@usal.es>"
+  echo "Alberto Luengo Román  (09093933D) <luengor@usal.es>"
+  exit 0
 else
   echo "ERROR: Argumentos introducidos inválidos."
   usage
