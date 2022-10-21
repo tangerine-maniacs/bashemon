@@ -73,6 +73,8 @@ function readPokes {
 
 function menuPrincipal {
   while true; do
+    # TODO: hacer algunas comprobaciones de archivos, configuración...
+    # y mostrar por pantalla si hay algún problema (falta algo).
     echo "C) CONFIGURACION"
     echo "J) JUGAR"
     echo "E) ESTADÍSTICAS"
@@ -134,15 +136,25 @@ function mConfig {
   done
 }
 
+function buscarNumPoke {
+  for i in "${!pokenames[@]}"; do
+    if [[ "${pokenames[$i]}" = "$1" ]]; then
+        echo "${i}"
+        break
+    fi
+  done
+}
+
 function mJugar {
   # Choose pokemons 
-  player_pokemon=$(randRange 0 151)
-  enemy_pokemon=$(randRange 0 151)
+  n_jug=$(buscarNumPoke $POKEMON_JUGADOR)
+  n_enem=$(randRange 0 151)
+  poke_enem=${pokenames[$n_enem]}
 
-  printf "${pokenames[$player_pokemon]} vs. ${pokenames[$enemy_pokemon]}\n\n"
+  printf "${POKEMON_JUGADOR} vs. ${poke_enem}\n\n"
 
   # Sleep for intensity
-  printf "${pokenames[$player_pokemon]} le pega tremendos putazos a ${pokenames[$enemy_pokemon]}"
+  printf "${POKEMON_JUGADOR} pelea contra ${poke_enem}"
   sleeps=$(randRange 2 6)
   for i in $(seq 0 $sleeps)
   do
@@ -152,33 +164,37 @@ function mJugar {
   done
 
   # Check who wins
-  player_type=${poketypes[$player_pokemon]}
-  enemy_type=$(echo ${poketypes[$enemy_pokemon]} | cut -b -2)
+  tipo_jug=${poketypes[$n_jug]}
+  tipo_enem=$(echo ${poketypes[$n_enem]} | cut -b -2)
 
-  typeline=${TABLA_TIPOS[$player_type]}
-
-  if echo $typeline | cut -d '-' -f 1 | grep -q "$enemy_type"; then
+  linea_tipo=${TABLA_TIPOS[$tipo_jug]}
+  # Si el tipo del enemigo está en la parte de la izquierda de la línea de la tabla
+  # de tipos correspondiente al tipo del pokemon del jugador (con el formato que hemos 
+  # puesto), el enemigo ha ganado, si está en la derecha el enemigo ha perdido
+  if echo $linea_tipo | cut -d '-' -f 1 | grep -q "$tipo_enem"; then
     # Player wins
-    echo "${pokenames[$player_pokemon]} detruye a ${pokenames[$enemy_pokemon]}" 
-    log $NOMBRE_JUGADOR ${pokenames[$player_pokemon]} ${pokenames[$enemy_pokemon]} "Jugador"
-  elif echo $typeline | cut -d '-' -f 2 | grep -q "$enemy_type"; then
+    echo "Gana!" 
+    log $NOMBRE_JUGADOR ${POKEMON_JUGADOR} ${poke_enem} "Jugador"
+    VICTORIAS=$(($VICTORIAS + 1))
+    writeConfig
+  elif echo $linea_tipo | cut -d '-' -f 2 | grep -q "$tipo_enem"; then
     # Enemy wins
-    echo "${pokenames[$enemy_pokemon]} esquiva y te cambia el horoscopo de severa contusion craneal"
-    log $NOMBRE_JUGADOR ${pokenames[$player_pokemon]} ${pokenames[$enemy_pokemon]} "Rival"
+    echo "Pierde!"
+    log $NOMBRE_JUGADOR ${POKEMON_JUGADOR} ${poke_enem} "Rival"
   else
     # Draw
     echo "Empate!"
-    # TODO: Preguntar si ponemos empate en caso de que empate
-    log $NOMBRE_JUGADOR ${pokenames[$player_pokemon]} ${pokenames[$enemy_pokemon]} "Empate"
+    log $NOMBRE_JUGADOR ${POKEMON_JUGADOR} ${poke_enem} "Empate"
   fi
 }
 
-# TODO: Si hay varios con el máximo, cuál cogemos?
+# Función: maxDicc <diccionario>
+# Devuelve la llave que tiene el valor máximo dentro de un diccionario
 function maxDicc {
   local -n dicc=$1
 
-  max_key=!dicc[0]
-  max_val=dicc[0]
+  max_key="Ninguno"
+  max_val=0
 
   for key in "${!dicc[@]}"; do
     if [[ ${dicc[$key]} -gt $max_val ]]; then
