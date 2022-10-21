@@ -31,10 +31,10 @@ VICTORIAS=""
 POKEMON_JUGADOR=""
 
 # === funciones ===
-# Función: usage
+# Función: uso
 # Imprime cómo usar el script (argumentos), y devuelve 0 (ejecución 
 # satisfactoria).
-function usage {
+function uso {
   echo "Bashémon: Proyecto SSOOI"
   echo "Uso: $0 [-g]"
   echo " -g: Mostrar los nombres de los integrantes del equipo"
@@ -299,5 +299,5 @@ elif [[ $# -eq 1 && "$1" == "-g" ]]; then
   exit 0
 else
   echo "ERROR: Argumentos introducidos inválidos."
-  usage
+  uso
 fi
