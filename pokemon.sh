@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+# /usr/bin no sigue las normas POSIX :)
+# Así que vamos a añadir /usr/xpg4/bin al PATH
+# Lo ponemos dentro de un if para poder ejecutar el código en otras máquinas
+# que no sean Solaris.
+if [ $(hostname) == "encina" ]; then
+  export PATH="/usr/xpg4/bin:$PATH"
+fi
+
 # === CONSTANTES ===
 POKEDEX_FILE="pokedex.cfg"
 TIPOS_FILE="tipos.cfg"
@@ -175,8 +183,7 @@ function mJugar {
   # Sleep for intensity
   printf "${POKEMON_JUGADOR} pelea contra ${poke_enem}"
   sleeps=$(randRange 2 6)
-  for i in $(seq 0 $sleeps)
-  do
+  for (( i=0; i<=sleeps; i++ )); do
     printf '.'
     
     sleep 1
@@ -319,3 +326,4 @@ else
   echo "ERROR: Argumentos introducidos inválidos."
   uso
 fi
+
