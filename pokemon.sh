@@ -30,6 +30,8 @@ NOMBRE_JUGADOR=""
 VICTORIAS=""
 POKEMON_JUGADOR=""
 
+
+# === funciones ===
 function usage {
   echo "Bashémon: Proyecto SSOOI"
   echo "Uso: $0 [-g]"
@@ -39,7 +41,7 @@ function usage {
 
 # Esta función asume que el fichero config.cfg incluye esas claves, sólo esas claves
 # y sólo una de cada.
-function readConfig {
+function cargarConfig {
   LOG_FILE=$(grep '^LOG=' $CONFIG_FILE | sed -e 's/LOG=//')
   if [ -z $LOG_FILE ]; then
     return 1
@@ -54,7 +56,7 @@ function readConfig {
   POKEMON_JUGADOR=$(grep '^POKEMON=' $CONFIG_FILE | sed -e 's/POKEMON=//')
 }
 
-function writeConfig {
+function guardarConfig {
   printf "NOMBRE=${NOMBRE_JUGADOR}\nPOKEMON=${POKEMON_JUGADOR}\nVICTORIAS=${VICTORIAS}\nLOG=${LOG_FILE}" > $CONFIG_FILE
 }
 
@@ -111,22 +113,22 @@ function mConfig {
       "N")
         local esOpcionValida=true
         read -p "Introduce tu nombre de jugador: " NOMBRE_JUGADOR
-        writeConfig;;
+        guardarConfig;;
       "P")
         local esOpcionValida=true
         # TODO: No dejar elegir un pokémon que no existe.
         read -p "Introduce tu pokemon elegido: " POKEMON_JUGADOR
-        writeConfig;;
+        guardarConfig;;
       "V")
         local esOpcionValida=true
         # TODO: Asegurarse de que victorias es un número.
         read -p "Introduce el número de victorias hasta el momento: " VICTORIAS
-        writeConfig;;
+        guardarConfig;;
       "L")
         local esOpcionValida=true
         # TODO: Dar error si la nueva ubicación es incorrecta
         read -p "Introduce la nueva ubicación del fichero de log: " LOG_FILE
-        writeConfig;;
+        guardarConfig;;
       "A")
         local esOpcionValida=true
         return;;
@@ -176,7 +178,7 @@ function mJugar {
     echo "Gana!" 
     log $NOMBRE_JUGADOR ${POKEMON_JUGADOR} ${poke_enem} "Jugador"
     VICTORIAS=$(($VICTORIAS + 1))
-    writeConfig
+    guardarConfig
   elif echo $linea_tipo | cut -d '-' -f 2 | grep -q "$tipo_enem"; then
     # Enemy wins
     echo "Pierde!"
@@ -251,7 +253,7 @@ function mReinicio {
   POKEMON=""
   VICTORIAS=""
   # LOG_FILE="" mantenemos log_file
-  writeConfig
+  guardarConfig
 }
 
 function mSalir {
@@ -283,7 +285,7 @@ if [ $# -eq 0 ]; then
   # programa
   echo "Cargando pokémon..."
   readPokes
-  readConfig
+  cargarConfig
   menuPrincipal
 elif [[ $# -eq 1 && "$1" == "-g" ]]; then
   # nuestros nombres
