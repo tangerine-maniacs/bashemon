@@ -59,15 +59,15 @@ function writeConfig {
 }
 
 # Read pokemons in a (Pokemon, type) form 
-declare -a pokenames 
-declare -a poketypes
+declare -a NOMBRES_POKEMON 
+declare -a TIPOS_POKEMON
 function readPokes {
-  # TODO: Make pokenames and poketypes uppercase
+  # TODO: Make NOMBRES_POKEMON and TIPOS_POKEMON uppercase
   for i in {0..151..1}
   do
     padded_i=$(printf "%03d" $(($i + 1)))
-    pokenames[$i]=$(grep "$padded_i" pokedex.cfg | cut -d '=' -f 2)
-    poketypes[$i]=$(grep "$padded_i" tipos.cfg | cut -d '=' -f 2)
+    NOMBRES_POKEMON[$i]=$(grep "$padded_i" pokedex.cfg | cut -d '=' -f 2)
+    TIPOS_POKEMON[$i]=$(grep "$padded_i" tipos.cfg | cut -d '=' -f 2)
   done
 }
 
@@ -137,8 +137,8 @@ function mConfig {
 }
 
 function buscarNumPoke {
-  for i in "${!pokenames[@]}"; do
-    if [[ "${pokenames[$i]}" = "$1" ]]; then
+  for i in "${!NOMBRES_POKEMON[@]}"; do
+    if [[ "${NOMBRES_POKEMON[$i]}" = "$1" ]]; then
         echo "${i}"
         break
     fi
@@ -149,7 +149,7 @@ function mJugar {
   # Choose pokemons 
   n_jug=$(buscarNumPoke $POKEMON_JUGADOR)
   n_enem=$(randRange 0 151)
-  poke_enem=${pokenames[$n_enem]}
+  poke_enem=${NOMBRES_POKEMON[$n_enem]}
 
   printf "${POKEMON_JUGADOR} vs. ${poke_enem}\n\n"
 
@@ -164,8 +164,8 @@ function mJugar {
   done
 
   # Check who wins
-  tipo_jug=${poketypes[$n_jug]}
-  tipo_enem=$(echo ${poketypes[$n_enem]} | cut -b -2)
+  tipo_jug=${TIPOS_POKEMON[$n_jug]}
+  tipo_enem=$(echo ${TIPOS_POKEMON[$n_enem]} | cut -b -2)
 
   linea_tipo=${TABLA_TIPOS[$tipo_jug]}
   # Si el tipo del enemigo está en la parte de la izquierda de la línea de la tabla
