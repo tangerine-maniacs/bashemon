@@ -30,17 +30,19 @@ NOMBRE_JUGADOR=""
 VICTORIAS=""
 POKEMON_JUGADOR=""
 
-
 # === funciones ===
+# Función: usage
+# Imprime cómo usar el script (argumentos), y devuelve 0 (ejecución 
+# satisfactoria).
 function usage {
   echo "Bashémon: Proyecto SSOOI"
   echo "Uso: $0 [-g]"
   echo " -g: Mostrar los nombres de los integrantes del equipo"
-  exit 1
+  exit 0
 }
 
-# Esta función asume que el fichero config.cfg incluye esas claves, sólo esas claves
-# y sólo una de cada.
+# Esta función asume que el fichero config.cfg incluye esas claves, sólo esas 
+# claves y sólo una de cada.
 function cargarConfig {
   LOG_FILE=$(grep '^LOG=' $CONFIG_FILE | sed -e 's/LOG=//')
   if [ -z $LOG_FILE ]; then
@@ -56,20 +58,26 @@ function cargarConfig {
   POKEMON_JUGADOR=$(grep '^POKEMON=' $CONFIG_FILE | sed -e 's/POKEMON=//')
 }
 
+# Función: guardarConfig
+# Genera un archivo de configuración y lo guarda, basándose en los valores de 
+# las variables globales (declaradas en la sección 'config.cfg')
 function guardarConfig {
   printf "NOMBRE=${NOMBRE_JUGADOR}\nPOKEMON=${POKEMON_JUGADOR}\nVICTORIAS=${VICTORIAS}\nLOG=${LOG_FILE}" > $CONFIG_FILE
 }
 
-# Read pokemons in a (Pokemon, type) form 
+# Función: readPokes
+# Lee los pokemon y los tipos de sus respectivos archivos, y los almacena en dos
+# listas globales, 'NOMBRES_POKEMON' y 'TIPOS_POKEMON'. 
 declare -a NOMBRES_POKEMON 
 declare -a TIPOS_POKEMON
 function readPokes {
-  # TODO: Make NOMBRES_POKEMON and TIPOS_POKEMON uppercase
-  for i in {0..151..1}
-  do
-    padded_i=$(printf "%03d" $(($i + 1)))
-    NOMBRES_POKEMON[$i]=$(grep "$padded_i" pokedex.cfg | cut -d '=' -f 2)
-    TIPOS_POKEMON[$i]=$(grep "$padded_i" tipos.cfg | cut -d '=' -f 2)
+  # Para leer los pokemon en orden (en caso de que el archivo tenga alguna 
+  # línea desordenada) generamos los números de las líneas (rellenando con 0s a
+  # la izquierda) y leemos las líneas que tienen esos números.
+  for i in {0..151..1}; do
+    i_relleno=$(printf "%03d" $(($i + 1)))
+    NOMBRES_POKEMON[$i]=$(grep "$i_relleno" $POKEDEX_FILE | cut -d '=' -f 2)
+    TIPOS_POKEMON[$i]=$(grep "$i_relleno" $TIPOS_FILE | cut -d '=' -f 2)
   done
 }
 
@@ -260,14 +268,17 @@ function mSalir {
   exit 0
 }
 
-# log $jugador $pokemonJugador $pokemonRival $ganadorPartida - guardar datos en el fichero log
+# Función: log <jugador> <pokemonJugador> <pokemonRival> <ganadorPartida>
+# Guarda los datos introducidos, la fecha y la hora en el fichero log siguiendo
+# el formato indicado en el enunciado del ejercicio.
 function log {
   fecha=$(date +%d/%m/%Y)
   hora=$(date +%H:%M) 
   echo "$fecha | $hora | $1 | $2 | $3 | $4 | $5" >> $LOG_FILE
 }
 
-# randRange $1 $2 genera un número aleatorio en [$1, $2)
+# Función: randRange <min> <max>
+# Genera un número entero aleatorio en [min, max)
 function randRange {
   local min=$1
   local max=$2
