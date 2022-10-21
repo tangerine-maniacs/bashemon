@@ -65,12 +65,12 @@ function guardarConfig {
   printf "NOMBRE=${NOMBRE_JUGADOR}\nPOKEMON=${POKEMON_JUGADOR}\nVICTORIAS=${VICTORIAS}\nLOG=${LOG_FILE}" > $CONFIG_FILE
 }
 
-# Función: readPokes
+# Función: leerPokes
 # Lee los pokemon y los tipos de sus respectivos archivos, y los almacena en dos
 # listas globales, 'NOMBRES_POKEMON' y 'TIPOS_POKEMON'. 
 declare -a NOMBRES_POKEMON 
 declare -a TIPOS_POKEMON
-function readPokes {
+function leerPokes {
   # Para leer los pokemon en orden (en caso de que el archivo tenga alguna 
   # línea desordenada) generamos los números de las líneas (rellenando con 0s a
   # la izquierda) y leemos las líneas que tienen esos números.
@@ -288,7 +288,7 @@ function randRange {
 if [ $# -eq 0 ]; then
   # programa
   echo "Cargando pokémon..."
-  readPokes
+  leerPokes
   cargarConfig
   menuPrincipal
 elif [[ $# -eq 1 && "$1" == "-g" ]]; then
