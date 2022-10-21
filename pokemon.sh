@@ -262,8 +262,8 @@ function mSalir {
 
 # log $jugador $pokemonJugador $pokemonRival $ganadorPartida - guardar datos en el fichero log
 function log {
-  fecha=$(date +%d%m%Y)
-  hora=$(date +%H) # TODO: Hora? Hora y minutos? 
+  fecha=$(date +%d/%m/%Y)
+  hora=$(date +%H:%M) 
   echo "$fecha | $hora | $1 | $2 | $3 | $4 | $5" >> $LOG_FILE
 }
 
@@ -272,13 +272,6 @@ function randRange {
   local min=$1
   local max=$2
   echo $((min + $RANDOM % (max - min)))
-}
-
-function loadCoolPokegraphics {
-  :
-}
-function coolGraphics {
-  :
 }
 
 if [ $# -eq 0 ]; then
