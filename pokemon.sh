@@ -60,7 +60,7 @@ function cargarConfig {
 
 # Función: guardarConfig
 # Genera un archivo de configuración y lo guarda, basándose en los valores de 
-# las variables globales (declaradas en la sección 'config.cfg')
+# las variables globales (declaradas en la sección 'config.cfg').
 function guardarConfig {
   printf "NOMBRE=${NOMBRE_JUGADOR}\nPOKEMON=${POKEMON_JUGADOR}\nVICTORIAS=${VICTORIAS}\nLOG=${LOG_FILE}" > $CONFIG_FILE
 }
@@ -81,6 +81,8 @@ function leerPokes {
   done
 }
 
+# Función: menuPrincipal
+# Muestra el menú principal.
 function menuPrincipal {
   while true; do
     # TODO: hacer algunas comprobaciones de archivos, configuración...
@@ -108,6 +110,9 @@ function menuPrincipal {
   done
 }
 
+# Función: mConfig
+# Muestra el menú de configuración, que permite la modificación de los valores
+# que hay dentro del archivo de configuración.
 function mConfig {
   local esOpcionValida=false
   while ! $esOpcionValida; do
@@ -146,6 +151,9 @@ function mConfig {
   done
 }
 
+# Función: buscarNumPoke <nombre del pokemon>
+# Busca en la lista de NOMBRES_POKEMON el índice del pokemon pasado.
+# como argumento.
 function buscarNumPoke {
   for i in "${!NOMBRES_POKEMON[@]}"; do
     if [[ "${NOMBRES_POKEMON[$i]}" = "$1" ]]; then
@@ -154,7 +162,8 @@ function buscarNumPoke {
     fi
   done
 }
-
+# Función: mJugar
+# Muestra el menú de juego. Esta es la función más importante.
 function mJugar {
   # Choose pokemons 
   n_jug=$(buscarNumPoke $POKEMON_JUGADOR)
@@ -199,7 +208,7 @@ function mJugar {
 }
 
 # Función: maxDicc <diccionario>
-# Devuelve la llave que tiene el valor máximo dentro de un diccionario
+# Devuelve la llave que tiene el valor máximo dentro de un diccionario.
 function maxDicc {
   local -n dicc=$1
 
@@ -216,6 +225,9 @@ function maxDicc {
   echo $max_key 
 }
 
+# Función: mEstadisticas
+# Calcula las estadísticas a partir del archivo log, y posteriormente muestra el
+# menú de estadísticas, 
 function mEstadisticas {
   local ncombates=0
   local nganados=0
@@ -252,6 +264,9 @@ function mEstadisticas {
   echo "Pokémon del rival con más victorias (${poke_ganados_rival[$max_pgr]}): $max_pgr"
 }
 
+# Función: mReinicio
+# Vacía el archivo de log, y los campos de config.cfg (excepto el campo de 
+# ruta del archivo de log)
 function mReinicio {
   # Vaciar el archivo log
   printf "" > $LOG_FILE 
@@ -260,10 +275,13 @@ function mReinicio {
   NOMBRE_JUGADOR=""
   POKEMON=""
   VICTORIAS=""
-  # LOG_FILE="" mantenemos log_file
+  # No vaciamos LOG_FILE porque es más cómodo para el usuario no tener que
+  # volver a escribir la ruta
   guardarConfig
 }
 
+# Función: mSalir
+# Sale del programa, poniendo el código 0.
 function mSalir {
   exit 0
 }
@@ -278,7 +296,7 @@ function log {
 }
 
 # Función: randRange <min> <max>
-# Genera un número entero aleatorio en [min, max)
+# Genera un número entero aleatorio en [min, max).
 function randRange {
   local min=$1
   local max=$2
