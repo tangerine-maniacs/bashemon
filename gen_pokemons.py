@@ -36,7 +36,8 @@ def fill(image:np.ndarray, pos:tuple, color:int) -> None:
         fill(image, (pos[0], pos[1] + 1), color)
 
 IMAGE_PATH = "all_pokes.png"
-CHARS = " */@"[::-1]
+# CHARS = " */@"[::-1]
+CHARS = " ░▒▓█"[::-1]
 image = cv2.imread(IMAGE_PATH, cv2.IMREAD_GRAYSCALE)
 text = [] 
 
@@ -53,11 +54,10 @@ for i in tqdm(range(151)):
     relation = 255 / dist
 
     small_image = (np.array(small_image, dtype=np.float32) - im_min) * relation 
-    print(np.min(small_image), np.max(small_image))
 
     # Convert to txt
     for line in small_image: 
-        text.append("".join(CHARS[int(v // (255 // 4 + 1))] for v in line) + "\n")
+        text.append("".join(CHARS[int(v // (255 // len(CHARS) + 1))] for v in line) + "\n")
 
 # Write
 with open("smallsprites.txt", "w") as f:
