@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 
+set -o errexit
+set -o nounset
+set -o pipefail
+
+# TODO: Quitar esto antes de hacer la defensa
+if [[ "${TRACE-0}" == "1" ]]; then
+    set -o xtrace
+fi
+
 # /usr/bin no sigue las normas POSIX :)
 # Así que vamos a añadir /usr/xpg4/bin al PATH
 # Lo ponemos dentro de un if para poder ejecutar el código en otras máquinas
