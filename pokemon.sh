@@ -197,13 +197,6 @@ function invertirCadena {
   echo "$inv"
 }
 
-# repetir <texto> <numero>
-function repetir {
-  for (( i=0; i < "$2"; i++ )); do 
-    printf "%s" "$1"
-  done
-}
-
 function impirmirDibujosNum {
   local poke_number1
   local poke_number2
