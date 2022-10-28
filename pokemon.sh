@@ -21,6 +21,7 @@ fi
 POKEDEX_FILE="pokedex.cfg"
 TIPOS_FILE="tipos.cfg"
 CONFIG_FILE="config.cfg"
+SPRITES_FILE="smallsprites.txt"
 
 declare -A TABLA_TIPOS=(
   ["normal"]="-ro fa"
@@ -91,8 +92,8 @@ function leerPokes {
   # Para leer los pokemon en orden (en caso de que el archivo tenga alguna 
   # línea desordenada) generamos los números de las líneas (rellenando con 0s a
   # la izquierda) y leemos las líneas que tienen esos números.
-  for i in {1..151..1}; do
-    i_relleno=$(printf "%03d" "$i")
+  for i in {0..150..1}; do
+    i_relleno=$(printf "%03d" "$((i+1))")
     NOMBRES_POKEMON[$i]=$(grep "$i_relleno" $POKEDEX_FILE | cut -d '=' -f 2)
     TIPOS_POKEMON[$i]=$(grep "$i_relleno" $TIPOS_FILE | cut -d '=' -f 2)
   done
@@ -179,6 +180,83 @@ function buscarNumPoke {
     fi
   done
 }
+
+function invertirCadena {
+  local var
+  local longitud
+  local i
+  local inv
+  var=$1
+  longitud="${#var}"
+  inv=""
+
+  for (( i=longitud; i >= 0; i-- )); do 
+    inv+="${var:$i:1}"
+  done
+
+  echo "$inv"
+}
+
+# repetir <texto> <numero>
+function repetir {
+  for (( i=0; i < "$2"; i++ )); do 
+    printf "%s" "$1"
+  done
+}
+
+function impirmirDibujosNum {
+  local poke_number1
+  local poke_number2
+  poke_number1=$1
+  poke_number2=$2
+
+  declare -a arr_poke1
+  declare -a arr_poke2
+
+  # i: el número de la línea
+  # poke_index: el número del pokemon
+  # poke_subindex: el número de la línea dentro del pokemon 
+  local i
+  local poke_index
+  local poke_subindex
+  i=0
+
+  while IFS= read -r line; do
+    poke_index=$((i / 32))
+    poke_subindex=$((i % 32))
+  
+    # No ponemos elif porque poke_number1 y poke_number2 pueden ser iguales y
+    # si tuviera un elif, sólo añadiríamos el texto del primer pokemon.
+    if [[ "$poke_index" -eq "$poke_number1" ]]; then
+      arr_poke1[poke_subindex]+="$line"
+    fi
+    if [[ "$poke_index" -eq "$poke_number2" ]]; then
+      arr_poke2[poke_subindex]+=$(invertirCadena "$line")
+    fi
+
+    # Cuando hayamos pasado todos los pokemon que queremos imprimir, salir.
+    if [[ "$poke_index" -gt "$poke_number1" && "$poke_index" -gt "$poke_number2" ]]; then
+      break
+    fi
+    i=$((i+1))
+  done < "$SPRITES_FILE"
+
+  # Para que quede bonito, añado espacios, así la anchura del resultado
+  # final es la misma que la del terminal (80 por defecto).
+  # [poke1(32)][espacio(16)][poke2(32)]
+  for i in "${!arr_poke1[@]}"; do
+     printf "%s%16s%s\n" "${arr_poke1[$i]}" "" "${arr_poke2[$i]}"
+  done
+}
+
+# imprimirTextoCentrado <texto> <ancho>
+function imprimirTextoCentrado {
+  local pad_delante
+  pad_delante="$(((${#1} + $2) / 2))"
+  pad_detras=$(($2 - pad_delante - ${#1}))
+  printf "%*s%*s\n" "$pad_delante" "$1" "$pad_detras" ""
+}
+
 # Función: mJugar
 # Muestra el menú de juego. Esta es la función más importante.
 function mJugar {
@@ -187,7 +265,8 @@ function mJugar {
   n_enem=$(randRange 0 151)
   poke_enem=${NOMBRES_POKEMON[$n_enem]}
 
-  printf "%s vs. %s\n\n" "$POKEMON_JUGADOR" "$poke_enem"
+  impirmirDibujosNum "$n_jug" "$n_enem"
+  printf "%s%16s%s\n" "$(imprimirTextoCentrado "$POKEMON_JUGADOR" 32)" "" "$(imprimirTextoCentrado "$poke_enem" 32)"
 
   # Sleep for intensity
   printf "%s pelea contra %s" "$POKEMON_JUGADOR" "$poke_enem"
