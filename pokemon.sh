@@ -4,7 +4,7 @@
 # Así que vamos a añadir /usr/xpg4/bin al PATH
 # Lo ponemos dentro de un if para poder ejecutar el código en otras máquinas
 # que no sean Solaris.
-if [ $(hostname) == "encina" ]; then
+if [[ "$(hostname)" = "encina" ]]; then
   export PATH="/usr/xpg4/bin:$PATH"
 fi
 
@@ -52,25 +52,25 @@ function uso {
 # Esta función asume que el fichero config.cfg incluye esas claves, sólo esas 
 # claves y sólo una de cada.
 function cargarConfig {
-  LOG_FILE=$(grep '^LOG=' $CONFIG_FILE | sed -e 's/LOG=//')
-  if [ -z $LOG_FILE ]; then
+  LOG_FILE=$(grep '^LOG=' "$CONFIG_FILE" | sed -e 's/LOG=//')
+  if [[ -z "$LOG_FILE" ]]; then
     return 1
   fi
 
-  VICTORIAS=$(grep '^VICTORIAS=' $CONFIG_FILE | sed -e 's/VICTORIAS=//')
-  if [ -z $VICTORIAS ]; then
+  VICTORIAS=$(grep '^VICTORIAS=' "$CONFIG_FILE" | sed -e 's/VICTORIAS=//')
+  if [[ -z "$VICTORIAS" ]]; then
     VICTORIAS=0 # victorias va a ser 0 por defecto (si no existe)
   fi
 
-  NOMBRE_JUGADOR=$(grep '^NOMBRE=' $CONFIG_FILE | sed -e 's/NOMBRE=//')
-  POKEMON_JUGADOR=$(grep '^POKEMON=' $CONFIG_FILE | sed -e 's/POKEMON=//')
+  NOMBRE_JUGADOR=$(grep '^NOMBRE=' "$CONFIG_FILE" | sed -e 's/NOMBRE=//')
+  POKEMON_JUGADOR=$(grep '^POKEMON=' "$CONFIG_FILE" | sed -e 's/POKEMON=//')
 }
 
 # Función: guardarConfig
 # Genera un archivo de configuración y lo guarda, basándose en los valores de 
 # las variables globales (declaradas en la sección 'config.cfg').
 function guardarConfig {
-  printf "NOMBRE=${NOMBRE_JUGADOR}\nPOKEMON=${POKEMON_JUGADOR}\nVICTORIAS=${VICTORIAS}\nLOG=${LOG_FILE}" > $CONFIG_FILE
+  printf "NOMBRE=%s\nPOKEMON=%s\nVICTORIAS=%s\nLOG=%s\n" "$NOMBRE_JUGADOR" "$POKEMON_JUGADOR" "$VICTORIAS" "$LOG_FILE" > "$CONFIG_FILE"
 }
 
 # Función: leerPokes
@@ -83,7 +83,7 @@ function leerPokes {
   # línea desordenada) generamos los números de las líneas (rellenando con 0s a
   # la izquierda) y leemos las líneas que tienen esos números.
   for i in {0..151..1}; do
-    i_relleno=$(printf "%03d" $(($i + 1)))
+    i_relleno=$(printf "%03d" $((i + 1)))
     NOMBRES_POKEMON[$i]=$(grep "$i_relleno" $POKEDEX_FILE | cut -d '=' -f 2)
     TIPOS_POKEMON[$i]=$(grep "$i_relleno" $TIPOS_FILE | cut -d '=' -f 2)
   done
@@ -100,7 +100,7 @@ function menuPrincipal {
     echo "E) ESTADÍSTICAS"
     echo "R) REINICIO"
     echo "S) SALIR"
-    read -p ' "POKEMON EDICION USAL". Introduzca una opción >>' opcion
+    read -r -p ' "POKEMON EDICION USAL". Introduzca una opción >>' opcion
     case ${opcion^^} in
       "C")
         mConfig;;
@@ -129,26 +129,26 @@ function mConfig {
     echo "V) CAMBIAR Nº VICTORIAS                (Actual: ${VICTORIAS})"
     echo "L) CAMBIAR UBICACIÓN DE FICHERO DE LOG (Actual: ${LOG_FILE})"
     echo "A) ATRÁS"
-    read -p ' ¿Qué desea hacer? >>' opcion
+    read -r -p ' ¿Qué desea hacer? >>' opcion
     case ${opcion^^} in
       "N")
         local esOpcionValida=true
-        read -p "Introduce tu nombre de jugador: " NOMBRE_JUGADOR
+        read -r -p "Introduce tu nombre de jugador: " NOMBRE_JUGADOR
         guardarConfig;;
       "P")
         local esOpcionValida=true
         # TODO: No dejar elegir un pokémon que no existe.
-        read -p "Introduce tu pokemon elegido: " POKEMON_JUGADOR
+        read -r -p "Introduce tu pokemon elegido: " POKEMON_JUGADOR
         guardarConfig;;
       "V")
         local esOpcionValida=true
         # TODO: Asegurarse de que victorias es un número.
-        read -p "Introduce el número de victorias hasta el momento: " VICTORIAS
+        read -r -p "Introduce el número de victorias hasta el momento: " VICTORIAS
         guardarConfig;;
       "L")
         local esOpcionValida=true
         # TODO: Dar error si la nueva ubicación es incorrecta
-        read -p "Introduce la nueva ubicación del fichero de log: " LOG_FILE
+        read -r -p "Introduce la nueva ubicación del fichero de log: " LOG_FILE
         guardarConfig;;
       "A")
         local esOpcionValida=true
@@ -174,14 +174,14 @@ function buscarNumPoke {
 # Muestra el menú de juego. Esta es la función más importante.
 function mJugar {
   # Choose pokemons 
-  n_jug=$(buscarNumPoke $POKEMON_JUGADOR)
+  n_jug=$(buscarNumPoke "$POKEMON_JUGADOR")
   n_enem=$(randRange 0 151)
   poke_enem=${NOMBRES_POKEMON[$n_enem]}
 
-  printf "${POKEMON_JUGADOR} vs. ${poke_enem}\n\n"
+  printf "%s vs. %s\n\n" "$POKEMON_JUGADOR" "$poke_enem"
 
   # Sleep for intensity
-  printf "${POKEMON_JUGADOR} pelea contra ${poke_enem}"
+  printf "%s pelea contra %s" "$POKEMON_JUGADOR" "$poke_enem"
   sleeps=$(randRange 2 6)
   for (( i=0; i<=sleeps; i++ )); do
     printf '.'
@@ -191,26 +191,26 @@ function mJugar {
 
   # Check who wins
   tipo_jug=${TIPOS_POKEMON[$n_jug]}
-  tipo_enem=$(echo ${TIPOS_POKEMON[$n_enem]} | cut -b -2)
+  tipo_enem=$(echo "${TIPOS_POKEMON[$n_enem]}" | cut -b -2)
 
   linea_tipo=${TABLA_TIPOS[$tipo_jug]}
   # Si el tipo del enemigo está en la parte de la izquierda de la línea de la tabla
   # de tipos correspondiente al tipo del pokemon del jugador (con el formato que hemos 
   # puesto), el enemigo ha ganado, si está en la derecha el enemigo ha perdido
-  if echo $linea_tipo | cut -d '-' -f 1 | grep -q "$tipo_enem"; then
+  if echo "$linea_tipo" | cut -d '-' -f 1 | grep -q "$tipo_enem"; then
     # Player wins
     echo "Gana!" 
-    log $NOMBRE_JUGADOR ${POKEMON_JUGADOR} ${poke_enem} "Jugador"
-    VICTORIAS=$(($VICTORIAS + 1))
+    log "$NOMBRE_JUGADOR" "${POKEMON_JUGADOR}" "${poke_enem}" "Jugador"
+    VICTORIAS=$((VICTORIAS + 1))
     guardarConfig
-  elif echo $linea_tipo | cut -d '-' -f 2 | grep -q "$tipo_enem"; then
+  elif echo "$linea_tipo" | cut -d '-' -f 2 | grep -q "$tipo_enem"; then
     # Enemy wins
     echo "Pierde!"
-    log $NOMBRE_JUGADOR ${POKEMON_JUGADOR} ${poke_enem} "Rival"
+    log "$NOMBRE_JUGADOR" "${POKEMON_JUGADOR}" "${poke_enem}" "Rival"
   else
     # Draw
     echo "Empate!"
-    log $NOMBRE_JUGADOR ${POKEMON_JUGADOR} ${poke_enem} "Empate"
+    log "$NOMBRE_JUGADOR" "${POKEMON_JUGADOR}" "${poke_enem}" "Empate"
   fi
 }
 
@@ -229,7 +229,7 @@ function maxDicc {
     fi
   done
 
-  echo $max_key 
+  echo "$max_key" 
 }
 
 # Función: mEstadisticas
@@ -247,14 +247,15 @@ function mEstadisticas {
 
     # Si pone jugador en la línea, ese combate lo ha ganado el jugador.
     # FIX: Que el jugador se llame 'Jugador' o que tenga '|' en su nombre
-    if grep -q 'Jugador' <<< $line; then
+    local poke_nombre
+    if grep -q 'Jugador' <<< "$line"; then
       nganados=$((nganados+1))
       # Nombre del pokemon ganador
-      local poke_nombre=$(echo $line | cut -d'|' -f4 | xargs)
+      poke_nombre=$(echo "$line" | cut -d'|' -f4 | xargs)
       poke_ganados_jugador[$poke_nombre]=$((${poke_ganados_jugador[$poke_nombre]}+1))
-    elif grep -q 'Rival' <<< $line; then
+    elif grep -q 'Rival' <<< "$line"; then
       # Nombre del pokemon ganador
-      local poke_nombre=$(echo $line | cut -d'|' -f5 | xargs)
+      poke_nombre=$(echo "$line" | cut -d'|' -f5 | xargs)
 
       poke_ganados_rival[$poke_nombre]=$((${poke_ganados_rival[$poke_nombre]}+1))
     fi
@@ -276,11 +277,11 @@ function mEstadisticas {
 # ruta del archivo de log)
 function mReinicio {
   # Vaciar el archivo log
-  printf "" > $LOG_FILE 
+  printf "" > "$LOG_FILE"
 
   # Cambiar las configuraciones
   NOMBRE_JUGADOR=""
-  POKEMON=""
+  POKEMON_JUGADOR=""
   VICTORIAS=""
   # No vaciamos LOG_FILE porque es más cómodo para el usuario no tener que
   # volver a escribir la ruta
@@ -299,7 +300,7 @@ function mSalir {
 function log {
   fecha=$(date +%d/%m/%Y)
   hora=$(date +%H:%M) 
-  echo "$fecha | $hora | $1 | $2 | $3 | $4 | $5" >> $LOG_FILE
+  echo "$fecha | $hora | $1 | $2 | $3 | $4 | $5" >> "$LOG_FILE"
 }
 
 # Función: randRange <min> <max>
@@ -307,7 +308,7 @@ function log {
 function randRange {
   local min=$1
   local max=$2
-  echo $((min + $RANDOM % (max - min)))
+  echo $((min + RANDOM % (max - min)))
 }
 
 if [ $# -eq 0 ]; then
