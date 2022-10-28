@@ -41,6 +41,26 @@ declare -A TABLA_TIPOS=(
   ["dragon"]="-"
 )
 
+FINCOLOR="\033[0m"
+
+declare -A TABLA_COLORES=(
+  ["normal"]="\033[97m"
+  ["lucha"]="\033[31m"
+  ["volador"]="\033[42"
+  ["veneno"]="\033[32m"
+  ["tierra"]=$FINCOLOR
+  ["roca"]=$FINCOLOR
+  ["bicho"]=$FINCOLOR
+  ["fantasma"]=$FINCOLOR
+  ["fuego"]="\033[91m"
+  ["agua"]="\033[34m"
+  ["planta"]="\033[92m"
+  ["electrico"]="\033[33m"
+  ["psiquico"]="\033[95m"
+  ["hielo"]=$FINCOLOR
+  ["dragon"]="\033[35m"
+)
+
 # === config.cfg === 
 # Valores cargados de config.cfg
 LOG_FILE=""
@@ -203,6 +223,9 @@ function impirmirDibujosNum {
   poke_number1=$1
   poke_number2=$2
 
+  poke_color1=${TABLA_COLORES[${TIPOS_POKEMON[$1]}]}
+  poke_color2=${TABLA_COLORES[${TIPOS_POKEMON[$2]}]}
+
   declare -a arr_poke1
   declare -a arr_poke2
 
@@ -240,9 +263,15 @@ function impirmirDibujosNum {
 
   # %16s y luego pasarle "" como string es una forma de hacer que
   # printf imprima 16 espacios
+  # por alguna razón, printf no imprime las cadenas de color cuando
+  # se le pasan como argumentos, por lo que hace falta imprimirlas
+  # al argumento
   for i in "${!arr_poke1[@]}"; do
-     printf "%s%16s%s\n" "${arr_poke1[$i]}" "" "${arr_poke2[$i]}"
+    printf "%s%s%16s%s%s\n" $(printf "$poke_color1") "${arr_poke1[$i]}" "" $(printf "$poke_color2") "${arr_poke2[$i]}"
   done
+
+  # para que no esté todo cambiado de color, pasamos el color neutro
+  printf $FINCOLOR 
 }
 
 # imprimirTextoCentrado <texto> <ancho>
