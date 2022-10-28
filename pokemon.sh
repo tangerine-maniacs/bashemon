@@ -192,6 +192,9 @@ function mJugar {
   # Sleep for intensity
   printf "%s pelea contra %s" "$POKEMON_JUGADOR" "$poke_enem"
   sleeps=$(randRange 2 6)
+  # No podemos utilizar un for in {0..$sleeps..1} porque se evalúa el {} antes
+  # que el $sleeps, haciendo que la iteración no funcione (itera desde cero)
+  # hasta una cadena de caracteres.
   for (( i=0; i<=sleeps; i++ )); do
     printf '.'
     
@@ -309,7 +312,7 @@ function mSalir {
 function log {
   fecha=$(date +%d/%m/%Y)
   hora=$(date +%H:%M) 
-  echo "$fecha | $hora | $1 | $2 | $3 | $4 | $5" >> "$LOG_FILE"
+  echo "$fecha | $hora | $1 | $2 | $3 | $4" >> "$LOG_FILE"
 }
 
 # Función: randRange <min> <max>
