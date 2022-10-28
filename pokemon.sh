@@ -436,8 +436,8 @@ if [ $# -eq 0 ]; then
 elif [[ $# -eq 1 && "$1" == "-g" ]]; then
   # nuestros nombres
   echo "Grupo compuesto por:"
-  echo "***NAME REDACTED*** (***ID REDACTED***) <***EMAIL REDACTED***>"
-  echo "***NAME REDACTED***  (***ID REDACTED***) <***EMAIL REDACTED***>"
+  printf "\033[33m***NAME REDACTED*** (***ID REDACTED***) <***EMAIL REDACTED***>$FINCOLOR\n"
+  printf "\033[31m***NAME REDACTED***  (***ID REDACTED***) <***EMAIL REDACTED***>$FINCOLOR\n"
   exit 0
 else
   echo "ERROR: Argumentos introducidos inválidos."
