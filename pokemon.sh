@@ -237,6 +237,9 @@ function impirmirDibujosNum {
   # Para que quede bonito, añado espacios, así la anchura del resultado
   # final es la misma que la del terminal (80 por defecto).
   # [poke1(32)][espacio(16)][poke2(32)]
+
+  # %16s y luego pasarle "" como string es una forma de hacer que
+  # printf imprima 16 espacios
   for i in "${!arr_poke1[@]}"; do
      printf "%s%16s%s\n" "${arr_poke1[$i]}" "" "${arr_poke2[$i]}"
   done
