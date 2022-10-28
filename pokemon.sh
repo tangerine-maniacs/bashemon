@@ -436,8 +436,8 @@ if [ $# -eq 0 ]; then
 elif [[ $# -eq 1 && "$1" == "-g" ]]; then
   # nuestros nombres
   echo "Grupo compuesto por:"
-  echo "Pablo Pérez Rodríguez (712122549H) <pab@usal.es>"
-  echo "Alberto Luengo Román  (09093933D) <luengor@usal.es>"
+  printf "\033[33mPablo Pérez Rodríguez (712122549H) <pab@usal.es>$FINCOLOR\n"
+  printf "\033[31mAlberto Luengo Román  (09093933D) <luengor@usal.es>$FINCOLOR\n"
   exit 0
 else
   echo "ERROR: Argumentos introducidos inválidos."
