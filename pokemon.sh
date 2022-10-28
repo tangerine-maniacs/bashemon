@@ -91,8 +91,8 @@ function leerPokes {
   # Para leer los pokemon en orden (en caso de que el archivo tenga alguna 
   # línea desordenada) generamos los números de las líneas (rellenando con 0s a
   # la izquierda) y leemos las líneas que tienen esos números.
-  for i in {0..151..1}; do
-    i_relleno=$(printf "%03d" $((i + 1)))
+  for i in {1..151..1}; do
+    i_relleno=$(printf "%03d" "$i")
     NOMBRES_POKEMON[$i]=$(grep "$i_relleno" $POKEDEX_FILE | cut -d '=' -f 2)
     TIPOS_POKEMON[$i]=$(grep "$i_relleno" $TIPOS_FILE | cut -d '=' -f 2)
   done
