@@ -3,6 +3,7 @@
 set -o errexit
 set -o nounset
 set -o pipefail
+set -o noglob
 
 # TODO: Quitar esto antes de hacer la defensa
 if [[ "${TRACE-0}" == "1" ]]; then
@@ -181,10 +182,11 @@ function buscarNumPoke {
   done
 }
 
+# Función: invertirCadena <cadena>
+# Devuelve la cadena, invertida.
 function invertirCadena {
   local var
   local longitud
-  local i
   local inv
   var=$1
   longitud="${#var}"
@@ -197,6 +199,8 @@ function invertirCadena {
   echo "$inv"
 }
 
+# Función: impirmirDibujosNum <num pokemon izq> <num pokemon dcha>
+# Dibuja dos pokemon, frente a frente, como si estuvieran peleando.
 function impirmirDibujosNum {
   local poke_number1
   local poke_number2
@@ -209,7 +213,6 @@ function impirmirDibujosNum {
   # i: el número de la línea
   # poke_index: el número del pokemon
   # poke_subindex: el número de la línea dentro del pokemon 
-  local i
   local poke_index
   local poke_subindex
   i=0
@@ -245,9 +248,11 @@ function impirmirDibujosNum {
   done
 }
 
-# imprimirTextoCentrado <texto> <ancho>
+# Función: imprimirTextoCentrado <texto> <ancho>
+# Imprime texto centrado en un bloque del ancho especificado en el segundo
+# argumento.
+# Ejemplo: imprimirTextoCentrado "test" 10 => "   test   "
 function imprimirTextoCentrado {
-  local pad_delante
   pad_delante="$(((${#1} + $2) / 2))"
   pad_detras=$(($2 - pad_delante - ${#1}))
   printf "%*s%*s\n" "$pad_delante" "$1" "$pad_detras" ""
