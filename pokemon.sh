@@ -24,6 +24,8 @@ TIPOS_FILE="tipos.cfg"
 CONFIG_FILE="config.cfg"
 SPRITES_FILE="smallsprites.txt"
 
+# la tabla está mal 100% seguro
+# pero no lo puedo demostrar
 declare -A TABLA_TIPOS=(
   ["normal"]="-ro fa"
   ["lucha"]="no ro hi-vo ve bi fa ps"
@@ -40,6 +42,28 @@ declare -A TABLA_TIPOS=(
   ["psiquico"]="lu ve-"
   ["hielo"]="vo ti pl dr-ag"
   ["dragon"]="-"
+)
+
+FINCOLOR="\033[0m"
+ERRCOLOR="\033[91m"
+OKCOLOR="\033[92m"
+
+declare -A TABLA_COLORES=(
+  ["normal"]="\033[97m"
+  ["lucha"]="\033[31m"
+  ["volador"]="\033[42"
+  ["veneno"]="\033[35m"
+  ["tierra"]=$FINCOLOR
+  ["roca"]=$FINCOLOR
+  ["bicho"]=$FINCOLOR
+  ["fantasma"]=$FINCOLOR
+  ["fuego"]="\033[91m"
+  ["agua"]="\033[34m"
+  ["planta"]="\033[92m"
+  ["electrico"]="\033[33m"
+  ["psiquico"]="\033[95m"
+  ["hielo"]=$FINCOLOR
+  ["dragon"]="\033[35m"
 )
 
 # === config.cfg === 
@@ -106,6 +130,7 @@ function menuPrincipal {
   while true; do
     # TODO: hacer algunas comprobaciones de archivos, configuración...
     # y mostrar por pantalla si hay algún problema (falta algo).
+    echo ""
     echo "C) CONFIGURACION"
     echo "J) JUGAR"
     echo "E) ESTADÍSTICAS"
@@ -133,39 +158,102 @@ function menuPrincipal {
 # Muestra el menú de configuración, que permite la modificación de los valores
 # que hay dentro del archivo de configuración.
 function mConfig {
+  # El menú de configuración no desaparecerá hasta que se introduzca
+  # una opcion correcta
   local esOpcionValida=false
+
   while ! $esOpcionValida; do
+    echo ""
     echo "N) CAMBIAR NOMBRE DEL JUGADOR          (Actual: ${NOMBRE_JUGADOR})"
     echo "P) CAMBIAR POKÉMON ELEGIDO             (Actual: ${POKEMON_JUGADOR})"
     echo "V) CAMBIAR Nº VICTORIAS                (Actual: ${VICTORIAS})"
     echo "L) CAMBIAR UBICACIÓN DE FICHERO DE LOG (Actual: ${LOG_FILE})"
     echo "A) ATRÁS"
     read -r -p ' ¿Qué desea hacer? >>' opcion
+
     case ${opcion^^} in
+      # Cambiar nombre
       "N")
         local esOpcionValida=true
         read -r -p "Introduce tu nombre de jugador: " NOMBRE_JUGADOR
         guardarConfig;;
+
+      # Cambiar pokemon 
       "P")
-        local esOpcionValida=true
-        # TODO: No dejar elegir un pokémon que no existe.
-        read -r -p "Introduce tu pokemon elegido: " POKEMON_JUGADOR
-        guardarConfig;;
+        read -r -p "Introduce tu pokemon elegido: " nuevo_pokemon 
+
+        # Comprobamos si el nombre está en la lista
+        if echo ${NOMBRES_POKEMON[@]} | grep -q " $(echo $nuevo_pokemon | sed 's/ //g') "; then
+          local esOpcionValida=true
+          printf "$OKCOLOR  ¡Adiós $POKEMON_JUGADOR, hola $nuevo_pokemon!\n$FINCOLOR"
+
+          POKEMON_JUGADOR=$nuevo_pokemon
+          guardarConfig
+        else
+          local esOpcionValida=false
+          printf "$ERRCOLOR  ¡Ese pokemon no existe!\n$FINCOLOR"
+        fi;;
+
+      # Cambiar número de victorias
       "V")
-        local esOpcionValida=true
-        # TODO: Asegurarse de que victorias es un número.
-        read -r -p "Introduce el número de victorias hasta el momento: " VICTORIAS
-        guardarConfig;;
+        read -r -p "Introduce el número de victorias hasta el momento: " nuevas_victorias 
+
+        # Comprobar que lo introducido es un número
+        if [[ "$nuevas_victorias" =~ ^[0-9]+$ ]]; then
+          local esOpcionValida=true
+          printf "$OKCOLOR  ¡Número de victorias modificado!\n$FINCOLOR"
+
+          NOMBRE_JUGADOR=$nuevas_victorias
+          guardarConfig
+        else
+          local esOpcionValida=false
+          printf "$ERRCOLOR  ¡El número de victorias debe ser un número!\n$FINCOLOR" 
+        fi;;
+
+      # Cambiar fichero de logs
       "L")
-        local esOpcionValida=true
-        # TODO: Dar error si la nueva ubicación es incorrecta
-        read -r -p "Introduce la nueva ubicación del fichero de log: " LOG_FILE
-        guardarConfig;;
+        read -r -p "Introduce la nueva ubicación del fichero de log: " nuevo_fichero
+
+        # Comprueba si es un fichero
+        if [[ -f $nuevo_fichero ]]; then
+          # Si lo es, comprobamos que es modificable
+          if [[ -w $nuevo_fichero ]]; then
+            local esOpcionValida=true
+            printf "$OKCOLOR  ¡Fichero de logs establecido!\n$FINCOLOR"
+
+            LOG_FILE=$nuevo_fichero
+            guardarConfig
+          else
+            local esOpcionValida=false
+            printf "$ERRCOLOR  ¡No se puede modificar ese fichero!\n$FINCOLOR"
+          fi
+
+        # Comprobamos si es un directorio
+        elif [[ -d $nuevo_fichero ]]; then
+          local esOpcionValida=false
+          printf "$ERRCOLOR  ¡Eso no es un archivo!\n$FINCOLOR"
+
+        # Si no es ni un directorio, ni un fichero, lo intentamos crear
+        else
+          if (echo "" > $nuevo_fichero) 2> /dev/null; then
+            local esOpcionValida=true
+            printf "$OKCOLOR  ¡Fichero de logs creado!\n$FINCOLOR"
+
+            LOG_FILE=$nuevo_fichero
+            guardarConfig
+          else
+            local esOpcionValida=false
+            printf "$ERRCOLOR  ¡No se pudo crear el archivo!\n$FINCOLOR"
+          fi
+        fi
+        ;;
+
+      # Salir del menú
       "A")
         local esOpcionValida=true
         return;;
       *) 
-        echo "Opción incorrecta";;
+        printf "$ERRCOLOR  Opción incorrecta\n$FINCOLOR";;
     esac
   done
 }
@@ -207,6 +295,9 @@ function impirmirDibujosNum {
   poke_number1=$1
   poke_number2=$2
 
+  poke_color1=${TABLA_COLORES[${TIPOS_POKEMON[$1]}]}
+  poke_color2=${TABLA_COLORES[${TIPOS_POKEMON[$2]}]}
+
   declare -a arr_poke1
   declare -a arr_poke2
 
@@ -227,6 +318,7 @@ function impirmirDibujosNum {
       arr_poke1[poke_subindex]+="$line"
     fi
     if [[ "$poke_index" -eq "$poke_number2" ]]; then
+      # LOS CARACTERES SON DE 2 BYTES Y ENCINA LOS VOLTEA MAL
       arr_poke2[poke_subindex]+=$(invertirCadena "$line")
     fi
 
@@ -243,9 +335,15 @@ function impirmirDibujosNum {
 
   # %16s y luego pasarle "" como string es una forma de hacer que
   # printf imprima 16 espacios
+  # por alguna razón, printf no imprime las cadenas de color cuando
+  # se le pasan como argumentos, por lo que hace falta imprimirlas
+  # al argumento
   for i in "${!arr_poke1[@]}"; do
-     printf "%s%16s%s\n" "${arr_poke1[$i]}" "" "${arr_poke2[$i]}"
+    printf "%s%s%16s%s%s\n" $(printf "$poke_color1") "${arr_poke1[$i]}" "" $(printf "$poke_color2") "${arr_poke2[$i]}"
   done
+
+  # para que no esté todo cambiado de color, pasamos el color neutro
+  printf $FINCOLOR 
 }
 
 # Función: imprimirTextoCentrado <texto> <ancho>
@@ -412,8 +510,8 @@ if [ $# -eq 0 ]; then
 elif [[ $# -eq 1 && "$1" == "-g" ]]; then
   # nuestros nombres
   echo "Grupo compuesto por:"
-  echo "***NAME REDACTED*** (***ID REDACTED***) <***EMAIL REDACTED***>"
-  echo "***NAME REDACTED***  (***ID REDACTED***) <***EMAIL REDACTED***>"
+  printf "\033[33m***NAME REDACTED*** (***ID REDACTED***) <***EMAIL REDACTED***>$FINCOLOR\n"
+  printf "\033[31m***NAME REDACTED***  (***ID REDACTED***) <***EMAIL REDACTED***>$FINCOLOR\n"
   exit 0
 else
   echo "ERROR: Argumentos introducidos inválidos."
