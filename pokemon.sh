@@ -114,6 +114,12 @@ function guardarConfig {
 declare -a NOMBRES_POKEMON 
 declare -a TIPOS_POKEMON
 function leerPokes {
+  # Comprobamos primero que el archivo "pokedex.cfg" existe y se puede leer 
+  if ! [ -r $POKEDEX_FILE ]; then
+    printf "$ERRCOLOR  ¡El archivo \"pokedex.cfg\" no existe o carece de los permisos necesarios!\n$FINCOLOR"
+    exit -1
+  fi
+
   # Para leer los pokemon en orden (en caso de que el archivo tenga alguna 
   # línea desordenada) generamos los números de las líneas (rellenando con 0s a
   # la izquierda) y leemos las líneas que tienen esos números.
@@ -245,8 +251,7 @@ function mConfig {
             local esOpcionValida=false
             printf "$ERRCOLOR  ¡No se pudo crear el archivo!\n$FINCOLOR"
           fi
-        fi
-        ;;
+        fi;;
 
       # Salir del menú
       "A")
