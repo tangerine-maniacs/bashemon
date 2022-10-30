@@ -87,6 +87,21 @@ function uso {
 # Esta función asume que el fichero config.cfg incluye esas claves, sólo esas 
 # claves y sólo una de cada.
 function cargarConfig {
+  # Comprobamos que existe el archivo de configuración
+  if ! [ -w $CONFIG_FILE ]; then
+    # Si no existe, lo creamos o salimos si no es posible
+    printf "$ERRCOLOR ¡El archivo \"config.cfg\" no existe o carece de los permisos necesarios!\n$FINCOLOR"
+
+    newfile="NOMBRE=Nombre jugador\nPOKEMON=Bulbasaur\nVICTORIAS=0\nLOG=info.log"
+
+    if (echo -e $newfile > "config.cfg") 2> /dev/null; then
+      printf " ¡Archivo de configuración creado!\n"
+    else
+      printf "$ERRCOLOR ¡No se pudo crear el archivo de configuración!\n"
+      exit 1
+    fi
+  fi
+
   LOG_FILE=$(grep '^LOG=' "$CONFIG_FILE" | sed -e 's/LOG=//')
   if [[ -z "$LOG_FILE" ]]; then
     return 1
