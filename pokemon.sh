@@ -448,38 +448,63 @@ function maxDicc {
 function mEstadisticas {
   local ncombates=0
   local nganados=0
- 
   declare -A poke_ganados_jugador
   declare -A poke_ganados_rival
 
   while read -r line; do
-    ncombates=$((ncombates+1))
+    ncombates=$(($ncombates+1))
 
-    # Si pone jugador en la línea, ese combate lo ha ganado el jugador.
-    # FIX: Que el jugador se llame 'Jugador' o que tenga '|' en su nombre
-    local poke_nombre
-    if grep -q 'Jugador' <<< "$line"; then
-      nganados=$((nganados+1))
-      # Nombre del pokemon ganador
-      poke_nombre=$(echo "$line" | cut -d'|' -f4 | xargs)
-      poke_ganados_jugador[$poke_nombre]=$((${poke_ganados_jugador[$poke_nombre]}+1))
-    elif grep -q 'Rival' <<< "$line"; then
-      # Nombre del pokemon ganador
-      poke_nombre=$(echo "$line" | cut -d'|' -f5 | xargs)
+    # Comprobamos ganador
+    ganador=$(cut -d '|' -f 6 <<< $line | cut -b 2)
+    case $ganador in
+      'J')
+        nganados=$(($nganados+1))
 
-      poke_ganados_rival[$poke_nombre]=$((${poke_ganados_rival[$poke_nombre]}+1))
-    fi
+        # Nombre del pokemon ganador
+        poke_nombre=$(echo "$line" | cut -d'|' -f4)
+
+        # Hay que comprobar que el valor ya está en el array antes de incrementarlo
+        if [[ -v poke_ganados_jugador[$poke_nombre] ]]; then
+          poke_ganados_jugador[$poke_nombre]=$((${poke_ganados_jugador[$poke_nombre]} + 1))
+        else
+          poke_ganados_jugador[$poke_nombre]=1
+        fi
+        ;;
+
+      'R')
+        # Nombre del pokemon ganador
+        poke_nombre=$(echo "$line" | cut -d'|' -f5)
+
+        # Hay que comprobar que el valor ya está en el array antes de incrementarlo
+        if [[ -v poke_ganados_rival[$poke_nombre] ]]; then
+          poke_ganados_rival[$poke_nombre]=$((${poke_ganados_rival[$poke_nombre]} + 1))
+        else
+          poke_ganados_rival[$poke_nombre]=1
+        fi
+        ;;
+    esac
   done < info.log
 
+  # Calculamos los pokemons con más victorias
+  max_pgj=$(maxDicc poke_ganados_jugador)
+  max_pgr=$(maxDicc poke_ganados_rival)
 
-  # Convertir diccionario a lista n-victorias, nombres de pokemon
+  # Imprimimos la información
   echo "Número total de combates: $ncombates"
   echo "Número de combates ganados por el jugador: $nganados"
 
-  max_pgj=$(maxDicc poke_ganados_jugador)
-  max_pgr=$(maxDicc poke_ganados_rival)
-  echo "Pokémon del jugador con más victorias (${poke_ganados_jugador[$max_pgj]}): $max_pgj"
-  echo "Pokémon del rival con más victorias (${poke_ganados_rival[$max_pgr]}): $max_pgr"
+  # Hay que comprobar que se ha ganado por lo menos 1 vez para imprimir
+  if [[ "$max_pgj" == "Ninguno" ]];then 
+    echo "El jugador todavía no ha ganado ningún combate"
+  else
+    echo "Pokémon del jugador con más victorias (${poke_ganados_jugador[$max_pgj]}): $max_pgj"
+  fi
+
+  if [[ "$max_pgr" == "Ninguno" ]];then 
+    echo "El rival todavía no ha ganado ningún combate"
+  else
+    echo "Pokémon del rival con más victorias (${poke_ganados_rival[$max_pgr]}): $max_pgr"
+  fi
 }
 
 # Función: mReinicio
