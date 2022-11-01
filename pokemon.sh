@@ -132,7 +132,7 @@ function leerPokes {
   # Comprobamos primero que el archivo "pokedex.cfg" existe y se puede leer 
   if ! [ -r $POKEDEX_FILE ]; then
     printf "$ERRCOLOR  ¡El archivo \"pokedex.cfg\" no existe o carece de los permisos necesarios!\n$FINCOLOR"
-    exit -1
+    exit 1
   fi
 
   # Para leer los pokemon en orden (en caso de que el archivo tenga alguna 
@@ -204,7 +204,7 @@ function mConfig {
         read -r -p "Introduce tu pokemon elegido: " nuevo_pokemon 
 
         # Comprobamos si el nombre está en la lista
-        if echo ${NOMBRES_POKEMON[@]} | grep -q " $(echo $nuevo_pokemon | sed 's/ //g') "; then
+        if echo "${NOMBRES_POKEMON[@]}" | grep -q " $(echo $nuevo_pokemon | sed 's/ //g') "; then
           local esOpcionValida=true
           printf "$OKCOLOR  ¡Adiós $POKEMON_JUGADOR, hola $nuevo_pokemon!\n$FINCOLOR"
 
