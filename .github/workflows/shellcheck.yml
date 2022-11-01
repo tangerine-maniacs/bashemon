@@ -15,5 +15,4 @@ jobs:
       - name: Run ShellCheck
         uses: bostonaholic/action-shellcheck@fix-set-output
         with:
-          ignore_paths: ./*
-          additional_files: ./pokemon.sh
+          ignore_paths: ./imprimirPokes.sh
