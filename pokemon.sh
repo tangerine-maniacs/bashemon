@@ -197,9 +197,9 @@ function menuPrincipal {
 function mConfig {
   # El menú de configuración no desaparecerá hasta que se introduzca
   # una opcion correcta
-  local esOpcionValida=false
+  local volverAMostrar=true
 
-  while ! $esOpcionValida; do
+  while $volverAMostrar; do
     echo ""
     echo "N) CAMBIAR NOMBRE DEL JUGADOR          (Actual: ${NOMBRE_JUGADOR})"
     echo "P) CAMBIAR POKÉMON ELEGIDO             (Actual: ${POKEMON_JUGADOR})"
@@ -211,7 +211,7 @@ function mConfig {
     case ${opcion^^} in
       # Cambiar nombre
       "N")
-        local esOpcionValida=true
+        volverAMostrar=false
         read -rp "Introduce tu nombre de jugador: " NOMBRE_JUGADOR
         guardarConfig;;
 
@@ -221,13 +221,13 @@ function mConfig {
 
         # Comprobamos si el nombre está en la lista
         if echo "${NOMBRES_POKEMON[@]}" | grep -q " ${nuevo_pokemon// /}"; then
-          local esOpcionValida=true
+          volverAMostrar=false
           pgood "¡Adiós $POKEMON_JUGADOR, hola $nuevo_pokemon!\n"
 
           POKEMON_JUGADOR=$nuevo_pokemon
           guardarConfig
         else
-          local esOpcionValida=false
+          volverAMostrar=true
           perro "¡Ese pokemon no existe!\n"
         fi;;
 
@@ -237,13 +237,13 @@ function mConfig {
 
         # Comprobar que lo introducido es un número
         if [[ "$nuevas_victorias" =~ ^[0-9]+$ ]]; then
-          local esOpcionValida=true
+          volverAMostrar=false
           pgood "¡Número de victorias modificado!\n"
 
           NOMBRE_JUGADOR=$nuevas_victorias
           guardarConfig
         else
-          local esOpcionValida=false
+          volverAMostrar=true
           perro "¡El número de victorias debe ser un número!\n" 
         fi;;
 
@@ -255,38 +255,38 @@ function mConfig {
         if [[ -f $nuevo_fichero ]]; then
           # Si lo es, comprobamos que es modificable
           if [[ -w $nuevo_fichero ]]; then
-            local esOpcionValida=true
+            volverAMostrar=false
             pgood "¡Fichero de logs establecido!\n"
 
             LOG_FILE=$nuevo_fichero
             guardarConfig
           else
-            local esOpcionValida=false
+            volverAMostrar=true
             perro "¡No se puede modificar ese fichero!\n"
           fi
 
         # Comprobamos si es un directorio
         elif [[ -d $nuevo_fichero ]]; then
-          local esOpcionValida=false
+          volverAMostrar=true
           perro "¡Eso no es un archivo!\n"
 
         # Si no es ni un directorio, ni un fichero, lo intentamos crear
         else
           if (echo "" > "$nuevo_fichero") 2> /dev/null; then
-            local esOpcionValida=true
+            volverAMostrar=false
             pgood "¡Fichero de logs creado!\n"
 
             LOG_FILE=$nuevo_fichero
             guardarConfig
           else
-            local esOpcionValida=false
+            volverAMostrar=true
             perro "¡No se pudo crear el archivo!\n"
           fi
         fi;;
 
       # Salir del menú
       "A")
-        local esOpcionValida=true
+        volverAMostrar=false
         return;;
       *) 
         perro "Opción incorrecta\n";;
