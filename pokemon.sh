@@ -84,20 +84,36 @@ function uso {
   exit 0
 }
 
+# Funcion: perro
+# Print ERROr 
+# Imprime una cadena de texto formateada con el color de error
+function perro {
+  printf "%b%b%b" "$ERRCOLOR" "$1" "$FINCOLOR"
+}
+
+
+# Funcion: pgood
+# Print GOOD
+# Imprime una cadena de texto formateada con el color de ok 
+function pgood {
+  printf "%b%b%b" "$OKCOLOR" "$1" "$FINCOLOR"
+}
+
+
 # Esta función asume que el fichero config.cfg incluye esas claves, sólo esas 
 # claves y sólo una de cada.
 function cargarConfig {
   # Comprobamos que existe el archivo de configuración
   if ! [ -w $CONFIG_FILE ]; then
     # Si no existe, lo creamos o salimos si no es posible
-    printf "$ERRCOLOR ¡El archivo \"config.cfg\" no existe o carece de los permisos necesarios!\n$FINCOLOR"
+    perro "¡El archivo \"config.cfg\" no existe o carece de los permisos necesarios!\n" 
 
     newfile="NOMBRE=Nombre jugador\nPOKEMON=Bulbasaur\nVICTORIAS=0\nLOG=info.log"
 
-    if (echo -e $newfile > "config.cfg") 2> /dev/null; then
+    if (echo -e "$newfile" > "config.cfg") 2> /dev/null; then
       printf " ¡Archivo de configuración creado!\n"
     else
-      printf "$ERRCOLOR ¡No se pudo crear el archivo de configuración!\n"
+      perro "¡No se pudo crear el archivo de configuración!\n"
       exit 1
     fi
   fi
@@ -131,7 +147,7 @@ declare -a TIPOS_POKEMON
 function leerPokes {
   # Comprobamos primero que el archivo "pokedex.cfg" existe y se puede leer 
   if ! [ -r $POKEDEX_FILE ]; then
-    printf "$ERRCOLOR  ¡El archivo \"pokedex.cfg\" no existe o carece de los permisos necesarios!\n$FINCOLOR"
+    perro "¡El archivo \"pokedex.cfg\" no existe o carece de los permisos necesarios!\n"
     exit 1
   fi
 
@@ -204,15 +220,15 @@ function mConfig {
         read -r -p "Introduce tu pokemon elegido: " nuevo_pokemon 
 
         # Comprobamos si el nombre está en la lista
-        if echo "${NOMBRES_POKEMON[@]}" | grep -q " $(echo $nuevo_pokemon | sed 's/ //g') "; then
+        if echo "${NOMBRES_POKEMON[@]}" | grep -q " ${nuevo_pokemon// /}"; then
           local esOpcionValida=true
-          printf "$OKCOLOR  ¡Adiós $POKEMON_JUGADOR, hola $nuevo_pokemon!\n$FINCOLOR"
+          pgood "¡Adiós $POKEMON_JUGADOR, hola $nuevo_pokemon!\n"
 
           POKEMON_JUGADOR=$nuevo_pokemon
           guardarConfig
         else
           local esOpcionValida=false
-          printf "$ERRCOLOR  ¡Ese pokemon no existe!\n$FINCOLOR"
+          perro "¡Ese pokemon no existe!\n"
         fi;;
 
       # Cambiar número de victorias
@@ -222,13 +238,13 @@ function mConfig {
         # Comprobar que lo introducido es un número
         if [[ "$nuevas_victorias" =~ ^[0-9]+$ ]]; then
           local esOpcionValida=true
-          printf "$OKCOLOR  ¡Número de victorias modificado!\n$FINCOLOR"
+          pgood "¡Número de victorias modificado!\n"
 
           NOMBRE_JUGADOR=$nuevas_victorias
           guardarConfig
         else
           local esOpcionValida=false
-          printf "$ERRCOLOR  ¡El número de victorias debe ser un número!\n$FINCOLOR" 
+          perro "¡El número de victorias debe ser un número!\n" 
         fi;;
 
       # Cambiar fichero de logs
@@ -240,31 +256,31 @@ function mConfig {
           # Si lo es, comprobamos que es modificable
           if [[ -w $nuevo_fichero ]]; then
             local esOpcionValida=true
-            printf "$OKCOLOR  ¡Fichero de logs establecido!\n$FINCOLOR"
+            pgood "¡Fichero de logs establecido!\n"
 
             LOG_FILE=$nuevo_fichero
             guardarConfig
           else
             local esOpcionValida=false
-            printf "$ERRCOLOR  ¡No se puede modificar ese fichero!\n$FINCOLOR"
+            perro "¡No se puede modificar ese fichero!\n"
           fi
 
         # Comprobamos si es un directorio
         elif [[ -d $nuevo_fichero ]]; then
           local esOpcionValida=false
-          printf "$ERRCOLOR  ¡Eso no es un archivo!\n$FINCOLOR"
+          perro "¡Eso no es un archivo!\n"
 
         # Si no es ni un directorio, ni un fichero, lo intentamos crear
         else
-          if (echo "" > $nuevo_fichero) 2> /dev/null; then
+          if (echo "" > "$nuevo_fichero") 2> /dev/null; then
             local esOpcionValida=true
-            printf "$OKCOLOR  ¡Fichero de logs creado!\n$FINCOLOR"
+            pgood "¡Fichero de logs creado!\n"
 
             LOG_FILE=$nuevo_fichero
             guardarConfig
           else
             local esOpcionValida=false
-            printf "$ERRCOLOR  ¡No se pudo crear el archivo!\n$FINCOLOR"
+            perro "¡No se pudo crear el archivo!\n"
           fi
         fi;;
 
@@ -273,7 +289,7 @@ function mConfig {
         local esOpcionValida=true
         return;;
       *) 
-        printf "$ERRCOLOR  Opción incorrecta\n$FINCOLOR";;
+        perro "Opción incorrecta\n";;
     esac
   done
 }
@@ -359,11 +375,11 @@ function impirmirDibujosNum {
   # se le pasan como argumentos, por lo que hace falta imprimirlas
   # al argumento
   for i in "${!arr_poke1[@]}"; do
-    printf "%s%s%16s%s%s\n" $(printf "$poke_color1") "${arr_poke1[$i]}" "" $(printf "$poke_color2") "${arr_poke2[$i]}"
+    printf "%b%s%16s%b%s\n" "$poke_color1" "${arr_poke1[$i]}" "" "$poke_color2" "${arr_poke2[$i]}"
   done
 
   # para que no esté todo cambiado de color, pasamos el color neutro
-  printf $FINCOLOR 
+  printf "%b" "$FINCOLOR" 
 }
 
 # Función: imprimirTextoCentrado <texto> <ancho>
@@ -452,13 +468,13 @@ function mEstadisticas {
   declare -A poke_ganados_rival
 
   while read -r line; do
-    ncombates=$(($ncombates+1))
+    ncombates=$((ncombates+1))
 
     # Comprobamos ganador
-    ganador=$(cut -d '|' -f 6 <<< $line | cut -b 2)
+    ganador=$(cut -d '|' -f 6 <<< "$line" | cut -b 2)
     case $ganador in
       'J')
-        nganados=$(($nganados+1))
+        nganados=$((nganados+1))
 
         # Nombre del pokemon ganador
         poke_nombre=$(echo "$line" | cut -d'|' -f4)
@@ -555,8 +571,8 @@ if [ $# -eq 0 ]; then
 elif [[ $# -eq 1 && "$1" == "-g" ]]; then
   # nuestros nombres
   echo "Grupo compuesto por:"
-  printf "\033[33m***NAME REDACTED*** (***ID REDACTED***) <***EMAIL REDACTED***>$FINCOLOR\n"
-  printf "\033[31m***NAME REDACTED***  (***ID REDACTED***) <***EMAIL REDACTED***>$FINCOLOR\n"
+  printf "\033[33m***NAME REDACTED*** (***ID REDACTED***) <***EMAIL REDACTED***>\n%b" "$FINCOLOR"
+  printf "\033[31m***NAME REDACTED***  (***ID REDACTED***) <***EMAIL REDACTED***>\n%b" "$FINCOLOR"
   exit 0
 else
   echo "ERROR: Argumentos introducidos inválidos."
