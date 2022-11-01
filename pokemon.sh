@@ -72,7 +72,6 @@ LOG_FILE=""
 NOMBRE_JUGADOR=""
 VICTORIAS=""
 POKEMON_JUGADOR=""
-qwer=""
 
 # === funciones ===
 # Función: uso
