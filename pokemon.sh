@@ -228,7 +228,7 @@ function mConfig {
           guardarConfig
         else
           volverAMostrar=true
-          perro "¡Ese pokemon no existe!\n"
+          perro "¡Ese pokemon no existe! No se ha cambiado el pokémon\n"
         fi;;
 
       # Cambiar número de victorias
