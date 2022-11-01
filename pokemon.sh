@@ -191,6 +191,18 @@ function menuPrincipal {
   done
 }
 
+# Función: existeEnLista <elemento> <lista>
+# Comprueba si un elemento está en una lista.
+function existeEnLista {
+  local -n arr=$2
+  for i in "${arr[@]}"; do
+    if [[ "$i" == "$1" ]]; then
+      return 0 # true
+    fi
+  done
+  return 1 # false
+}
+
 # Función: mConfig
 # Muestra el menú de configuración, que permite la modificación de los valores
 # que hay dentro del archivo de configuración.
@@ -218,9 +230,14 @@ function mConfig {
       # Cambiar pokemon 
       "P")
         read -rp "Introduce tu pokemon elegido: " nuevo_pokemon 
+        # Hacemos que el nombre esté escrito con la primera letra en mayúscula,
+        # y el resto en minúscula. Así está escrito de la misma forma que los
+        # nombres de los pokemon en el archivo "pokedex.cfg".
+        nuevo_pokemon="${nuevo_pokemon,,}"
+        nuevo_pokemon="${nuevo_pokemon^}"
 
         # Comprobamos si el nombre está en la lista
-        if echo "${NOMBRES_POKEMON[@]}" | grep -q " ${nuevo_pokemon// /}"; then
+        if existeEnLista "$nuevo_pokemon" NOMBRES_POKEMON; then
           volverAMostrar=false
           pgood "¡Adiós $POKEMON_JUGADOR, hola $nuevo_pokemon!\n"
 
