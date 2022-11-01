@@ -173,7 +173,7 @@ function menuPrincipal {
     echo "E) ESTADÍSTICAS"
     echo "R) REINICIO"
     echo "S) SALIR"
-    read -r -p ' "POKEMON EDICION USAL". Introduzca una opción >>' opcion
+    read -rp ' "POKEMON EDICION USAL". Introduzca una opción >>' opcion
     case ${opcion^^} in
       "C")
         mConfig;;
@@ -206,18 +206,18 @@ function mConfig {
     echo "V) CAMBIAR Nº VICTORIAS                (Actual: ${VICTORIAS})"
     echo "L) CAMBIAR UBICACIÓN DE FICHERO DE LOG (Actual: ${LOG_FILE})"
     echo "A) ATRÁS"
-    read -r -p ' ¿Qué desea hacer? >>' opcion
+    read -rp ' ¿Qué desea hacer? >>' opcion
 
     case ${opcion^^} in
       # Cambiar nombre
       "N")
         local esOpcionValida=true
-        read -r -p "Introduce tu nombre de jugador: " NOMBRE_JUGADOR
+        read -rp "Introduce tu nombre de jugador: " NOMBRE_JUGADOR
         guardarConfig;;
 
       # Cambiar pokemon 
       "P")
-        read -r -p "Introduce tu pokemon elegido: " nuevo_pokemon 
+        read -rp "Introduce tu pokemon elegido: " nuevo_pokemon 
 
         # Comprobamos si el nombre está en la lista
         if echo "${NOMBRES_POKEMON[@]}" | grep -q " ${nuevo_pokemon// /}"; then
@@ -233,7 +233,7 @@ function mConfig {
 
       # Cambiar número de victorias
       "V")
-        read -r -p "Introduce el número de victorias hasta el momento: " nuevas_victorias 
+        read -rp "Introduce el número de victorias hasta el momento: " nuevas_victorias 
 
         # Comprobar que lo introducido es un número
         if [[ "$nuevas_victorias" =~ ^[0-9]+$ ]]; then
@@ -249,7 +249,7 @@ function mConfig {
 
       # Cambiar fichero de logs
       "L")
-        read -r -p "Introduce la nueva ubicación del fichero de log: " nuevo_fichero
+        read -rp "Introduce la nueva ubicación del fichero de log: " nuevo_fichero
 
         # Comprueba si es un fichero
         if [[ -f $nuevo_fichero ]]; then
