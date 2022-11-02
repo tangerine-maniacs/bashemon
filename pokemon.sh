@@ -47,6 +47,7 @@ declare -A TABLA_TIPOS=(
 FINCOLOR="\033[0m"
 ERRCOLOR="\033[91m"
 OKCOLOR="\033[92m"
+AVISOCOLOR="\033[33m"
 
 declare -A TABLA_COLORES=(
   ["normal"]="\033[97m"
@@ -88,40 +89,66 @@ function uso {
 # Print ERROr 
 # Imprime una cadena de texto formateada con el color de error
 function perro {
-  printf "%b%b%b" "$ERRCOLOR" "$1" "$FINCOLOR"
+  printf "%bERROR: %b%b\n" "$ERRCOLOR" "$1" "$FINCOLOR" >&2
 }
-
-
+# Funcion: piso
+# Print avISO
+# Imprime una cadena de texto formateada con el color de aviso
+function piso {
+  printf "%bAVISO: %b%b\n" "$AVISOCOLOR" "$1" "$FINCOLOR" >&2
+}
 # Funcion: pgood
 # Print GOOD
 # Imprime una cadena de texto formateada con el color de ok 
 function pgood {
-  printf "%b%b%b" "$OKCOLOR" "$1" "$FINCOLOR"
+  printf "%b%b%b\n" "$OKCOLOR" "$1" "$FINCOLOR"
+}
+
+# Función: comprobarArchivoRW <archivo> <nombre del fichero>
+# Comprueba que un archivo exista y se pueda escribir.
+# Devuelve 0 si el archivo existe y se puede escribir, 1 si si existe pero 
+# no tiene las cualidades necesarias para poderse leer y escribir, 
+# y 2 si no existe.
+function comprobarArchivoRW {
+  if [[ -d "$1" ]]; then
+    perro "$2 existe pero es un directorio."
+    return 1
+  fi
+  if ! [[ -f "$1" ]]; then
+    perro "$2 no existe."
+    return 2
+  fi
+  if ! [[ -w $1 ]]; then
+    # Si no existe, lo creamos o salimos si no es posible
+    perro "¡$2 carece del permiso de escritura!" 
+    return 1
+  fi
+  if ! [[ -r $1 ]]; then
+    # Si no existe, lo creamos o salimos si no es posible
+    perro "¡$2 carece del permiso de lectura!" 
+    return 1
+  fi
 }
 
 
-# Esta función asume que el fichero config.cfg incluye esas claves, sólo esas 
-# claves y sólo una de cada.
+# Función: cargarConfig
+# Esta función asume que el fichero config.cfg contiene sólo una de cada clave. 
 function cargarConfig {
   # Comprobamos que existe el archivo de configuración
-  if ! [ -w $CONFIG_FILE ]; then
-    # Si no existe, lo creamos o salimos si no es posible
-    perro "¡El archivo \"config.cfg\" no existe o carece de los permisos necesarios!\n" 
-
-    newfile="NOMBRE=Nombre jugador\nPOKEMON=Bulbasaur\nVICTORIAS=0\nLOG=info.log"
-
-    if (echo -e "$newfile" > "config.cfg") 2> /dev/null; then
-      printf " ¡Archivo de configuración creado!\n"
-    else
-      perro "¡No se pudo crear el archivo de configuración!\n"
-      exit 1
-    fi
+  local resultadoComprobarArchivo
+  comprobarArchivoRW "$CONFIG_FILE" "El archivo de configuración" && :
+  resultadoComprobarArchivo=$?
+  if [[ "$resultadoComprobarArchivo" -eq 1 ]]; then
+    exit 1
   fi
+  if [[ "$resultadoComprobarArchivo" -eq 2 ]]; then
+    guardarConfig
+    pgood "Se ha creado el archivo de configuración con los valores por defecto."
+  fi
+  
 
+  # Cargamos los valores del archivo de configuración
   LOG_FILE=$(grep '^LOG=' "$CONFIG_FILE" | sed -e 's/LOG=//')
-  if [[ -z "$LOG_FILE" ]]; then
-    return 1
-  fi
 
   VICTORIAS=$(grep '^VICTORIAS=' "$CONFIG_FILE" | sed -e 's/VICTORIAS=//')
   if [[ -z "$VICTORIAS" ]]; then
@@ -135,8 +162,13 @@ function cargarConfig {
 # Función: guardarConfig
 # Genera un archivo de configuración y lo guarda, basándose en los valores de 
 # las variables globales (declaradas en la sección 'config.cfg').
+# Sale del programa si ha habido algún error al escribir la configuración.
 function guardarConfig {
   printf "NOMBRE=%s\nPOKEMON=%s\nVICTORIAS=%s\nLOG=%s\n" "$NOMBRE_JUGADOR" "$POKEMON_JUGADOR" "$VICTORIAS" "$LOG_FILE" > "$CONFIG_FILE"
+  if [[ $? -ne 0 ]]; then
+    perro "No se pudo guardar la configuración."
+    exit 1
+  fi
 }
 
 # Función: leerPokes
@@ -146,8 +178,8 @@ declare -a NOMBRES_POKEMON
 declare -a TIPOS_POKEMON
 function leerPokes {
   # Comprobamos primero que el archivo "pokedex.cfg" existe y se puede leer 
-  if ! [ -r $POKEDEX_FILE ]; then
-    perro "¡El archivo \"pokedex.cfg\" no existe o carece de los permisos necesarios!\n"
+  if ! [[ -r $POKEDEX_FILE ]]; then
+    perro "¡El archivo \"pokedex.cfg\" no existe o carece de los permisos necesarios!"
     exit 1
   fi
 
@@ -165,8 +197,6 @@ function leerPokes {
 # Muestra el menú principal.
 function menuPrincipal {
   while true; do
-    # TODO: hacer algunas comprobaciones de archivos, configuración...
-    # y mostrar por pantalla si hay algún problema (falta algo).
     echo ""
     echo "C) CONFIGURACION"
     echo "J) JUGAR"
@@ -178,7 +208,11 @@ function menuPrincipal {
       "C")
         mConfig;;
       "J")
-        mJugar;;
+        if comprobarJugar; then
+          mJugar
+        else 
+          perro "¡No puedes jugar hasta que no corrijas los errores!"
+        fi;;
       "E")
         mEstadisticas;;
       "R")
@@ -223,7 +257,6 @@ function mConfig {
     case ${opcion^^} in
       # Cambiar nombre
       "N")
-        volverAMostrar=false
         read -rp "Introduce tu nombre de jugador: " NOMBRE_JUGADOR
         guardarConfig;;
 
@@ -238,14 +271,16 @@ function mConfig {
 
         # Comprobamos si el nombre está en la lista
         if existeEnLista "$nuevo_pokemon" NOMBRES_POKEMON; then
-          volverAMostrar=false
-          pgood "¡Adiós $POKEMON_JUGADOR, hola $nuevo_pokemon!\n"
+          if [[ -z "$POKEMON_JUGADOR" ]]; then
+            pgood "¡Hola $nuevo_pokemon!"
+          else
+            pgood "¡Adiós $POKEMON_JUGADOR, hola $nuevo_pokemon!"
+          fi
 
           POKEMON_JUGADOR=$nuevo_pokemon
           guardarConfig
         else
-          volverAMostrar=true
-          perro "¡Ese pokemon no existe! No se ha cambiado el pokémon\n"
+          perro "¡Ese pokemon no existe! No se ha cambiado el pokémon"
         fi;;
 
       # Cambiar número de victorias
@@ -254,53 +289,38 @@ function mConfig {
 
         # Comprobar que lo introducido es un número
         if [[ "$nuevas_victorias" =~ ^[0-9]+$ ]]; then
-          volverAMostrar=false
-          pgood "¡Número de victorias modificado!\n"
+          pgood "¡Número de victorias modificado!"
 
-          NOMBRE_JUGADOR=$nuevas_victorias
+          VICTORIAS=$nuevas_victorias
           guardarConfig
         else
-          volverAMostrar=true
-          perro "¡El número de victorias debe ser un número!\n" 
+          perro "¡El número de victorias debe ser un número!" 
         fi;;
 
       # Cambiar fichero de logs
       "L")
         read -rp "Introduce la nueva ubicación del fichero de log: " nuevo_fichero
-
-        # Comprueba si es un fichero
-        if [[ -f $nuevo_fichero ]]; then
-          # Si lo es, comprobamos que es modificable
-          if [[ -w $nuevo_fichero ]]; then
-            volverAMostrar=false
-            pgood "¡Fichero de logs establecido!\n"
-
-            LOG_FILE=$nuevo_fichero
-            guardarConfig
-          else
-            volverAMostrar=true
-            perro "¡No se puede modificar ese fichero!\n"
-          fi
-
-        # Comprobamos si es un directorio
-        elif [[ -d $nuevo_fichero ]]; then
-          volverAMostrar=true
-          perro "¡Eso no es un archivo!\n"
-
-        # Si no es ni un directorio, ni un fichero, lo intentamos crear
-        else
+        local resultadoComprobarArchivo
+        comprobarArchivoRW "$nuevo_fichero" "El fichero" && :
+        resultadoComprobarArchivo=$?
+        if [[ "$resultadoComprobarArchivo" -eq 1 ]]; then
+          # ComprobarArchivoRW ya ha mostrado el error
+          :
+        elif [[ "$resultadoComprobarArchivo" -eq 2 ]]; then
           if (echo "" > "$nuevo_fichero") 2> /dev/null; then
-            volverAMostrar=false
-            pgood "¡Fichero de logs creado!\n"
+            pgood "¡Fichero de logs creado!"
 
             LOG_FILE=$nuevo_fichero
             guardarConfig
           else
-            volverAMostrar=true
-            perro "¡No se pudo crear el archivo!\n"
+            perro "¡No se pudo crear el fichero!"
           fi
-        fi;;
+        else
+          pgood "¡Fichero de logs establecido!"
 
+          LOG_FILE=$nuevo_fichero
+          guardarConfig
+        fi;;
       # Salir del menú
       "A")
         volverAMostrar=false
@@ -399,6 +419,31 @@ function impirmirDibujosNum {
   printf "%b" "$FINCOLOR" 
 }
 
+# Función: comprobarJugar 
+# Comprueba que el usuario tenga un nombre, que el nombre del pokémon sea
+# correcto...
+function comprobarJugar {
+  local valorRetorno
+  valorRetorno=0
+
+  if [[ -z "$NOMBRE_JUGADOR" ]]; then
+    perro "¡No tienes un nombre!"
+    valorRetorno=1
+  fi
+  if [[ -z "$POKEMON_JUGADOR" ]]; then
+    perro "¡No tienes un pokémon!"
+    valorRetorno=1
+  elif ! existeEnLista "$POKEMON_JUGADOR" NOMBRES_POKEMON; then
+    perro "¡El pokémon '$POKEMON_JUGADOR' no existe!"
+    valorRetorno=1
+  fi
+  if ! [[ "$VICTORIAS" =~ ^[0-9]+$ ]]; then
+    perro "El valor de victorias en la configuración no es un número."
+    valorRetorno=1
+  fi
+  return $valorRetorno
+}
+
 # Función: imprimirTextoCentrado <texto> <ancho>
 # Imprime texto centrado en un bloque del ancho especificado en el segundo
 # argumento.
@@ -431,6 +476,7 @@ function mJugar {
     
     sleep 1
   done
+  printf "\n"
 
   # Check who wins
   tipo_jug=${TIPOS_POKEMON[$n_jug]}
@@ -479,6 +525,13 @@ function maxDicc {
 # Calcula las estadísticas a partir del archivo log, y posteriormente muestra el
 # menú de estadísticas, 
 function mEstadisticas {
+  local resultadoComprobarArchivo
+  comprobarArchivoRW "$LOG_FILE" "El fichero de log" && :
+  resultadoComprobarArchivo=$?
+  if [[ $resultadoComprobarArchivo -ne 0 ]]; then
+    return
+  fi
+
   local ncombates=0
   local nganados=0
   declare -A poke_ganados_jugador
@@ -516,7 +569,7 @@ function mEstadisticas {
         fi
         ;;
     esac
-  done < info.log
+  done < "$LOG_FILE"
 
   # Calculamos los pokemons con más victorias
   max_pgj=$(maxDicc poke_ganados_jugador)
@@ -545,13 +598,17 @@ function mEstadisticas {
 # ruta del archivo de log)
 function mReinicio {
   # Vaciar el archivo log
-  printf "" > "$LOG_FILE"
+  if [[ -n $LOG_FILE ]]; then
+    if ! echo "" > "$LOG_FILE"; then
+      perro "Error al vaciar el archivo de log\n"
+    fi
+  fi
 
   # Cambiar las configuraciones
   NOMBRE_JUGADOR=""
   POKEMON_JUGADOR=""
   VICTORIAS=""
-  # No vaciamos LOG_FILE porque es más cómodo para el usuario no tener que
+  # No vaciamos la variable LOG_FILE porque es más cómodo para el usuario no tener que
   # volver a escribir la ruta
   guardarConfig
 }
@@ -566,9 +623,24 @@ function mSalir {
 # Guarda los datos introducidos, la fecha y la hora en el fichero log siguiendo
 # el formato indicado en el enunciado del ejercicio.
 function log {
-  fecha=$(date +%d/%m/%Y)
-  hora=$(date +%H:%M) 
-  echo "$fecha | $hora | $1 | $2 | $3 | $4" >> "$LOG_FILE"
+  if [[ -z $LOG_FILE ]]; then
+    piso "No se ha almacenado la partida en el fichero de log, porque no se ha proporcionado uno"
+    return
+  fi
+  
+  local resultadoComprobarArchivo
+  comprobarArchivoRW "$LOG_FILE" "El fichero de log" && :
+  resultadoComprobarArchivo=$?
+
+  if [[ "$resultadoComprobarArchivo" -eq 0 || "$resultadoComprobarArchivo" == 2 ]]; then
+      fecha=$(date +%d/%m/%Y)
+      hora=$(date +%H:%M) 
+      if ! echo "$fecha | $hora | $1 | $2 | $3 | $4" >> "$LOG_FILE"; then
+        perro "No se ha podido guardar la partida en el fichero de log"
+      fi
+  else
+    perro "No se ha podido guardar la partida en el fichero de log"
+  fi
 }
 
 # Función: randRange <min> <max>
@@ -579,7 +651,7 @@ function randRange {
   echo $((min + RANDOM % (max - min)))
 }
 
-if [ $# -eq 0 ]; then
+if [[ $# -eq 0 ]]; then
   # programa
   echo "Cargando pokémon..."
   leerPokes
@@ -592,7 +664,7 @@ elif [[ $# -eq 1 && "$1" == "-g" ]]; then
   printf "\033[31m***NAME REDACTED***  (***ID REDACTED***) <***EMAIL REDACTED***>\n%b" "$FINCOLOR"
   exit 0
 else
-  echo "ERROR: Argumentos introducidos inválidos."
+  perro "Argumentos introducidos inválidos."
   uso
 fi
 
