@@ -647,7 +647,7 @@ if [[ $# -eq 0 ]]; then
   # programa
   echo "Cargando pokémon..."
   leerPokes
-  echo "Cargando imágenes bonitas..."
+  printf "\033[95mCargando imágenes bonitas...%b\n" "$FINCOLOR"
   leerSprites
   echo "Cargando configuración..."
   cargarConfig
