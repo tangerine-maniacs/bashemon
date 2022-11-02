@@ -231,7 +231,7 @@ function menuPrincipal {
     echo "E) ESTADÍSTICAS"
     echo "R) REINICIO"
     echo "S) SALIR"
-    read -rp ' "POKEMON EDICION USAL". Introduzca una opción >>' opcion
+    read -rp ' "POKÉMON EDICION USAL". Introduzca una opción >>' opcion
     case ${opcion^^} in
       "C")
         mConfig;;
@@ -290,7 +290,7 @@ function mConfig {
 
       # Cambiar pokemon 
       "P")
-        read -rp "Introduce tu pokemon elegido: " nuevo_pokemon 
+        read -rp "Introduce tu pokémon elegido: " nuevo_pokemon 
         # Hacemos que el nombre esté escrito con la primera letra en mayúscula,
         # y el resto en minúscula. Así está escrito de la misma forma que los
         # nombres de los pokemon en el archivo "pokedex.cfg".
@@ -302,7 +302,7 @@ function mConfig {
           if [[ -z "$POKEMON_JUGADOR" ]]; then
             pgood "¡Hola $nuevo_pokemon!"
           elif [[ "$nuevo_pokemon" == "$POKEMON_JUGADOR" ]]; then
-            pgood "¡$POKEMON_JUGADOR ya era tu pokemon!"
+            pgood "¡$POKEMON_JUGADOR ya era tu pokémon!"
           else
             pgood "¡Adiós $POKEMON_JUGADOR, hola $nuevo_pokemon!"
           fi
@@ -310,7 +310,7 @@ function mConfig {
           POKEMON_JUGADOR=$nuevo_pokemon
           guardarConfig
         else
-          perro "¡Ese pokemon no existe! No se ha cambiado el pokémon"
+          perro "¡Ese pokémon no existe! No se ha cambiado el pokémon"
         fi;;
 
       # Cambiar número de victorias
