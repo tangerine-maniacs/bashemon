@@ -164,8 +164,7 @@ function cargarConfig {
 # las variables globales (declaradas en la sección 'config.cfg').
 # Sale del programa si ha habido algún error al escribir la configuración.
 function guardarConfig {
-  printf "NOMBRE=%s\nPOKEMON=%s\nVICTORIAS=%s\nLOG=%s\n" "$NOMBRE_JUGADOR" "$POKEMON_JUGADOR" "$VICTORIAS" "$LOG_FILE" > "$CONFIG_FILE"
-  if [[ $? -ne 0 ]]; then
+  if ! printf "NOMBRE=%s\nPOKEMON=%s\nVICTORIAS=%s\nLOG=%s\n" "$NOMBRE_JUGADOR" "$POKEMON_JUGADOR" "$VICTORIAS" "$LOG_FILE" > "$CONFIG_FILE"; then
     perro "No se pudo guardar la configuración."
     exit 1
   fi
