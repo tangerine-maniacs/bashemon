@@ -222,7 +222,7 @@ function menuPrincipal {
     echo "E) ESTADÍSTICAS"
     echo "R) REINICIO"
     echo "S) SALIR"
-    read -rp ' "POKÉMON EDICION USAL". Introduzca una opción >>' opcion
+    read -rp ' "POKÉMON EDICION USAL". Introduzca una opción >> ' opcion
     case ${opcion^^} in
       "C")
         mConfig;;
@@ -271,7 +271,7 @@ function mConfig {
     echo "V) CAMBIAR Nº VICTORIAS                (Actual: ${VICTORIAS})"
     echo "L) CAMBIAR UBICACIÓN DE FICHERO DE LOG (Actual: ${LOG_FILE})"
     echo "A) ATRÁS"
-    read -rp ' ¿Qué desea hacer? >>' opcion
+    read -rp ' ¿Qué desea hacer? >> ' opcion
 
     case ${opcion^^} in
       # Cambiar nombre
