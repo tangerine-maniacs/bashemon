@@ -1,18 +1,5 @@
 #!/usr/bin/env bash
 
-set -o errexit
-set -o nounset
-set -o pipefail
-set -o noglob
-
-# TODO: Cosas que quitar:
-#   - # shellcheck disable=...
-#   - && :
-#   - esto
-if [[ "${TRACE-0}" == "1" ]]; then
-    set -o xtrace
-fi
-
 # /usr/bin no sigue las normas POSIX :)
 # Así que vamos a añadir /usr/xpg4/bin al PATH
 # Lo ponemos dentro de un if para poder ejecutar el código en otras máquinas
@@ -27,8 +14,6 @@ TIPOS_FILE="tipos.cfg"
 CONFIG_FILE="config.cfg"
 SPRITES_FILE="smallsprites.txt"
 
-# la tabla está mal 100% seguro
-# pero no lo puedo demostrar
 declare -A TABLA_TIPOS=(
   ["normal"]="-ro fa"
   ["lucha"]="no ro hi-vo ve bi fa ps"
@@ -107,18 +92,24 @@ function pgood {
   printf "%b%b%b\n" "$OKCOLOR" "$1" "$FINCOLOR"
 }
 
-# Función: comprobarArchivoRW <archivo> <nombre del fichero>
+# Función: comprobarArchivoRW <archivo> <nombre del fichero> <errorSiNoExiste>
 # Comprueba que un archivo exista y se pueda escribir.
 # Devuelve 0 si el archivo existe y se puede escribir, 1 si si existe pero 
 # no tiene las cualidades necesarias para poderse leer y escribir, 
 # y 2 si no existe.
+# Si el archivo no existe y errorSiNoExiste es 0, imprime un mensaje de error,
+# si es 1, imprime un mensaje de aviso.
 function comprobarArchivoRW {
   if [[ -d "$1" ]]; then
     perro "$2 existe pero es un directorio."
     return 1
   fi
   if ! [[ -f "$1" ]]; then
-    perro "$2 no existe."
+    if errorSiNoExiste; then
+      perro "$2 no existe."
+    else
+      piso "$2 no existe."
+    fi
     return 2
   fi
   if ! [[ -w $1 ]]; then
@@ -139,7 +130,7 @@ function comprobarArchivoRW {
 function cargarConfig {
   # Comprobamos que existe el archivo de configuración
   local resultadoComprobarArchivo
-  comprobarArchivoRW "$CONFIG_FILE" "El archivo de configuración" && :
+  comprobarArchivoRW "$CONFIG_FILE" "El archivo de configuración" true
   resultadoComprobarArchivo=$?
   if [[ "$resultadoComprobarArchivo" -eq 1 ]]; then
     exit 1
@@ -331,7 +322,7 @@ function mConfig {
       "L")
         read -rp "Introduce la nueva ubicación del fichero de log: " nuevo_fichero
         local resultadoComprobarArchivo
-        comprobarArchivoRW "$nuevo_fichero" "El fichero" && :
+        comprobarArchivoRW "$nuevo_fichero" "El fichero" true
         resultadoComprobarArchivo=$?
         if [[ "$resultadoComprobarArchivo" -eq 1 ]]; then
           # ComprobarArchivoRW ya ha mostrado el error
@@ -447,9 +438,7 @@ function imprimirTextoCentrado {
 # Muestra el menú de juego. Esta es la función más importante.
 function mJugar {
   # Choose pokemons 
-  # shellcheck disable=SC2155
   local n_jug=$(buscarNumPoke "$POKEMON_JUGADOR")
-  # shellcheck disable=SC2155
   local n_enem=$(randRange 0 151)
   local poke_enem=${NOMBRES_POKEMON[$n_enem]}
 
@@ -460,7 +449,6 @@ function mJugar {
   # No podemos utilizar un for in {0..$sleeps..1} porque se evalúa el {} antes
   # que el $sleeps, haciendo que la iteración no funcione (itera desde cero)
   # hasta una cadena de caracteres.
-  # shellcheck disable=SC2155
   local sleeps=$(randRange 2 6)
   for (( i=0; i<=sleeps; i++ )); do
     printf '.'
@@ -469,28 +457,27 @@ function mJugar {
   done
   printf "\n"
 
-  # Check who wins
+  # Comprobar quién gana
   local tipo_jug=${TIPOS_POKEMON[$n_jug]}
-  # shellcheck disable=SC2155
   local tipo_enem=$(echo "${TIPOS_POKEMON[$n_enem]}" | cut -b -2)
-
   local linea_tipo=${TABLA_TIPOS[$tipo_jug]}
+
   # Si el tipo del enemigo está en la parte de la izquierda de la línea de la tabla
   # de tipos correspondiente al tipo del pokemon del jugador (con el formato que hemos 
   # puesto), el enemigo ha ganado, si está en la derecha el enemigo ha perdido
   if echo "$linea_tipo" | cut -d '-' -f 1 | grep -q "$tipo_enem"; then
-    # Player wins
-    echo "Gana!" 
+    # El jugador gana
+    echo "¡$POKEMON_JUGADOR ha vencido a $poke_enem!" 
     log "$NOMBRE_JUGADOR" "${POKEMON_JUGADOR}" "${poke_enem}" "Jugador"
     VICTORIAS=$((VICTORIAS + 1))
     guardarConfig
   elif echo "$linea_tipo" | cut -d '-' -f 2 | grep -q "$tipo_enem"; then
-    # Enemy wins
-    echo "Pierde!"
+    # El enemigo gana
+    echo "¡$POKEMON_JUGADOR ha perdido contra $poke_enem!" 
     log "$NOMBRE_JUGADOR" "${POKEMON_JUGADOR}" "${poke_enem}" "Rival"
   else
-    # Draw
-    echo "Empate!"
+    # Empate
+    echo "$POKEMON_JUGADOR y $poke_enem son igual de poderosos. ¡Empate!" 
     log "$NOMBRE_JUGADOR" "${POKEMON_JUGADOR}" "${poke_enem}" "Empate"
   fi
 }
@@ -518,7 +505,7 @@ function maxDicc {
 # menú de estadísticas, 
 function mEstadisticas {
   local resultadoComprobarArchivo
-  comprobarArchivoRW "$LOG_FILE" "El fichero de log" && :
+  comprobarArchivoRW "$LOG_FILE" "El fichero de log" true
   resultadoComprobarArchivo=$?
   if [[ $resultadoComprobarArchivo -ne 0 ]]; then
     return
@@ -533,14 +520,12 @@ function mEstadisticas {
     local ncombates=$((ncombates+1))
 
     # Comprobamos ganador
-    # shellcheck disable=SC2155
     local ganador=$(cut -d '|' -f 6 <<< "$line" | cut -b 2)
     case $ganador in
       'J')
         nganados=$((nganados+1))
 
         # Nombre del pokemon ganador
-        # shellcheck disable=SC2155
         local poke_nombre=$(echo "$line" | cut -d'|' -f4)
 
         # Hay que comprobar que el valor ya está en el array antes de incrementarlo
@@ -553,7 +538,6 @@ function mEstadisticas {
 
       'R')
         # Nombre del pokemon ganador
-        # shellcheck disable=SC2155
         local poke_nombre=$(echo "$line" | cut -d'|' -f5)
 
         # Hay que comprobar que el valor ya está en el array antes de incrementarlo
@@ -567,9 +551,7 @@ function mEstadisticas {
   done < "$LOG_FILE"
 
   # Calculamos los pokemons con más victorias
-  # shellcheck disable=SC2155
   local max_pgj=$(maxDicc poke_ganados_jugador)
-  # shellcheck disable=SC2155
   local max_pgr=$(maxDicc poke_ganados_rival)
 
   # Imprimimos la información
@@ -626,19 +608,17 @@ function log {
   fi
   
   local resultadoComprobarArchivo
-  comprobarArchivoRW "$LOG_FILE" "El fichero de log" && :
+  comprobarArchivoRW "$LOG_FILE" "El fichero de log" false
   resultadoComprobarArchivo=$?
 
-  if [[ "$resultadoComprobarArchivo" -eq 0 || "$resultadoComprobarArchivo" == 2 ]]; then
-      # shellcheck disable=SC2155
-      local fecha=$(date +%d/%m/%Y)
-      # shellcheck disable=SC2155
-      local hora=$(date +%H:%M) 
-      if ! echo "$fecha | $hora | $1 | $2 | $3 | $4" >> "$LOG_FILE"; then
-        perro "No se ha podido guardar la partida en el fichero de log"
-      else
-        pgood "Fichero de logs creado"
-      fi
+  if [[ "$resultadoComprobarArchivo" -eq 0 || "$resultadoComprobarArchivo" -eq 2 ]]; then
+    local fecha=$(date +%d/%m/%Y)
+    local hora=$(date +%H:%M) 
+    if ! echo "$fecha | $hora | $1 | $2 | $3 | $4" >> "$LOG_FILE"; then
+      perro "No se ha podido guardar la partida en el fichero de log"
+    else
+      pgood "Fichero de logs creado"
+    fi
   else
     perro "No se ha podido guardar la partida en el fichero de log"
   fi
