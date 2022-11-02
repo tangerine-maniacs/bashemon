@@ -130,7 +130,7 @@ function comprobarArchivoRW {
 function cargarConfig {
   # Comprobamos que existe el archivo de configuración
   local resultadoComprobarArchivo
-  comprobarArchivoRW "$CONFIG_FILE" "El archivo de configuración" true
+  comprobarArchivoRW "$CONFIG_FILE" "El archivo de configuración" false
   resultadoComprobarArchivo=$?
   if [[ "$resultadoComprobarArchivo" -eq 1 ]]; then
     exit 1
@@ -322,7 +322,7 @@ function mConfig {
       "L")
         read -rp "Introduce la nueva ubicación del fichero de log: " nuevo_fichero
         local resultadoComprobarArchivo
-        comprobarArchivoRW "$nuevo_fichero" "El fichero" true
+        comprobarArchivoRW "$nuevo_fichero" "El fichero" false
         resultadoComprobarArchivo=$?
         if [[ "$resultadoComprobarArchivo" -eq 1 ]]; then
           # ComprobarArchivoRW ya ha mostrado el error
