@@ -660,7 +660,7 @@ if [[ $# -eq 0 ]]; then
 elif [[ $# -eq 1 && "$1" == "-g" ]]; then
   # nuestros nombres
   echo "Grupo compuesto por:"
-  printf "\033[33mPablo Pérez Rodríguez (712122549H) <pab@usal.es>\n%b" "$FINCOLOR"
+  printf "\033[33mPablo Pérez Rodríguez (71212549H) <pab@usal.es>\n%b" "$FINCOLOR"
   printf "\033[31mAlberto Luengo Román  (09093933D) <luengor@usal.es>\n%b" "$FINCOLOR"
   exit 0
 else
