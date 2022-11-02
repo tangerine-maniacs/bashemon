@@ -217,7 +217,7 @@ function leerSprites {
 function menuPrincipal {
   while true; do
     echo ""
-    echo "C) CONFIGURACION"
+    echo "C) CONFIGURACIÓN"
     echo "J) JUGAR"
     echo "E) ESTADÍSTICAS"
     echo "R) REINICIO"
