@@ -178,7 +178,7 @@ declare -a TIPOS_POKEMON
 function leerPokes {
   # Comprobamos primero que el archivo "pokedex.cfg" existe y se puede leer 
   if ! [[ -r $POKEDEX_FILE ]]; then
-    perro "¡El archivo \"pokedex.cfg\" no existe o carece de los permisos necesarios!"
+    perro "¡El archivo \"${POKEDEX_FILE}\" no existe o carece de los permisos necesarios!"
     exit 1
   fi
 
@@ -190,6 +190,32 @@ function leerPokes {
     NOMBRES_POKEMON[$i]=$(grep "$i_relleno" $POKEDEX_FILE | cut -d '=' -f 2)
     TIPOS_POKEMON[$i]=$(grep "$i_relleno" $TIPOS_FILE | cut -d '=' -f 2)
   done
+}
+
+# Función: leerSprites
+# Lee los sprites y los guarda en una variable.
+declare -A SPRITES_POKEMON
+function leerSprites {
+  # Comprobamos primero que el archivo "pokedex.cfg" existe y se puede leer 
+  if ! [[ -r $SPRITES_FILE ]]; then
+    perro "¡El archivo \"${SPRITES_FILE}\" no existe o carece de los permisos necesarios!"
+    exit 1
+  fi
+
+  # Cada sprite tiene un tamaño de 32x32 caracteres, es decir, ocupa 32 líneas.
+  # i: el número de la línea
+  # poke_index: el número del pokemon
+  # poke_subindex: el número de la línea dentro del pokemon 
+  local poke_index
+  local poke_subindex
+  local i=0
+  while IFS= read -r line; do
+    poke_index=$((i / 32))
+    poke_subindex=$((i % 32))
+  
+    SPRITES_POKEMON["$poke_index,$poke_subindex"]+="$line"
+    i=$((i+1))
+  done < "$SPRITES_FILE"
 }
 
 # Función: menuPrincipal
@@ -362,56 +388,19 @@ function invertirCadena {
 # Función: impirmirDibujosNum <num pokemon izq> <num pokemon dcha>
 # Dibuja dos pokemon, frente a frente, como si estuvieran peleando.
 function impirmirDibujosNum {
-  local poke_number1
-  local poke_number2
-  poke_number1=$1
-  poke_number2=$2
-
   poke_color1=${TABLA_COLORES[${TIPOS_POKEMON[$1]}]}
   poke_color2=${TABLA_COLORES[${TIPOS_POKEMON[$2]}]}
 
-  declare -a arr_poke1
-  declare -a arr_poke2
-
-  # i: el número de la línea
-  # poke_index: el número del pokemon
-  # poke_subindex: el número de la línea dentro del pokemon 
-  local poke_index
-  local poke_subindex
-  i=0
-
-  while IFS= read -r line; do
-    poke_index=$((i / 32))
-    poke_subindex=$((i % 32))
-  
-    # No ponemos elif porque poke_number1 y poke_number2 pueden ser iguales y
-    # si tuviera un elif, sólo añadiríamos el texto del primer pokemon.
-    if [[ "$poke_index" -eq "$poke_number1" ]]; then
-      arr_poke1[poke_subindex]+="$line"
-    fi
-    if [[ "$poke_index" -eq "$poke_number2" ]]; then
-      # LOS CARACTERES SON DE 2 BYTES Y ENCINA LOS VOLTEA MAL
-      arr_poke2[poke_subindex]+=$(invertirCadena "$line")
-    fi
-
-    # Cuando hayamos pasado todos los pokemon que queremos imprimir, salir.
-    if [[ "$poke_index" -gt "$poke_number1" && "$poke_index" -gt "$poke_number2" ]]; then
-      break
-    fi
-    i=$((i+1))
-  done < "$SPRITES_FILE"
-
-  # Para que quede bonito, añado espacios, así la anchura del resultado
-  # final es la misma que la del terminal (80 por defecto).
+  # Para que quede bonito, añadimos espacios, así la anchura del resultado
+  # final es la misma que la del terminal (80, el valor por defecto).
   # [poke1(32)][espacio(16)][poke2(32)]
 
   # %16s y luego pasarle "" como string es una forma de hacer que
-  # printf imprima 16 espacios
-  # por alguna razón, printf no imprime las cadenas de color cuando
-  # se le pasan como argumentos, por lo que hace falta imprimirlas
-  # al argumento
-  for i in "${!arr_poke1[@]}"; do
-    printf "%b%s%16s%b%s\n" "$poke_color1" "${arr_poke1[$i]}" "" "$poke_color2" "${arr_poke2[$i]}"
+  # printf imprima 16 espacios.
+
+  # Iteramos de 0 a 31 porque los sprites tienen tamaño 32 líneas x 32 columnas.
+  for i in {0..31}; do
+    printf "%b%s%16s%b%s\n" "$poke_color1" "${SPRITES_POKEMON[$1,$i]}" "" "$poke_color2" "$(invertirCadena "${SPRITES_POKEMON[$2,$i]}")"
   done
 
   # para que no esté todo cambiado de color, pasamos el color neutro
@@ -448,9 +437,9 @@ function comprobarJugar {
 # argumento.
 # Ejemplo: imprimirTextoCentrado "test" 10 => "   test   "
 function imprimirTextoCentrado {
-  pad_delante="$(((${#1} + $2) / 2))"
+  pad_delante="$((($2 - ${#1}) / 2))"
   pad_detras=$(($2 - pad_delante - ${#1}))
-  printf "%*s%*s\n" "$pad_delante" "$1" "$pad_detras" ""
+  printf "%*s%s%*s\n" "$pad_delante" "" "$1" "$pad_detras" ""
 }
 
 # Función: mJugar
@@ -654,6 +643,9 @@ if [[ $# -eq 0 ]]; then
   # programa
   echo "Cargando pokémon..."
   leerPokes
+  echo "Cargando imágenes bonitas..."
+  leerSprites
+  echo "Cargando configuración..."
   cargarConfig
   menuPrincipal
 elif [[ $# -eq 1 && "$1" == "-g" ]]; then
