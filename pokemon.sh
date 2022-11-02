@@ -5,7 +5,10 @@ set -o nounset
 set -o pipefail
 set -o noglob
 
-# TODO: Quitar esto antes de hacer la defensa
+# TODO: Cosas que quitar:
+#   - # shellcheck disable=...
+#   - && :
+#   - esto
 if [[ "${TRACE-0}" == "1" ]]; then
     set -o xtrace
 fi
@@ -373,12 +376,9 @@ function buscarNumPoke {
 # Función: invertirCadena <cadena>
 # Devuelve la cadena, invertida.
 function invertirCadena {
-  local var
-  local longitud
-  local inv
-  var=$1
-  longitud="${#var}"
-  inv=""
+  local var=$1
+  local longitud="${#var}"
+  local inv=""
 
   for (( i=longitud; i >= 0; i-- )); do 
     inv+="${var:$i:1}"
@@ -390,8 +390,8 @@ function invertirCadena {
 # Función: impirmirDibujosNum <num pokemon izq> <num pokemon dcha>
 # Dibuja dos pokemon, frente a frente, como si estuvieran peleando.
 function impirmirDibujosNum {
-  poke_color1=${TABLA_COLORES[${TIPOS_POKEMON[$1]}]}
-  poke_color2=${TABLA_COLORES[${TIPOS_POKEMON[$2]}]}
+  local poke_color1=${TABLA_COLORES[${TIPOS_POKEMON[$1]}]}
+  local poke_color2=${TABLA_COLORES[${TIPOS_POKEMON[$2]}]}
 
   # Para que quede bonito, añadimos espacios, así la anchura del resultado
   # final es la misma que la del terminal (80, el valor por defecto).
@@ -413,8 +413,7 @@ function impirmirDibujosNum {
 # Comprueba que el usuario tenga un nombre, que el nombre del pokémon sea
 # correcto...
 function comprobarJugar {
-  local valorRetorno
-  valorRetorno=0
+  local valorRetorno=0
 
   if [[ -z "$NOMBRE_JUGADOR" ]]; then
     perro "¡No tienes un nombre!"
@@ -439,8 +438,8 @@ function comprobarJugar {
 # argumento.
 # Ejemplo: imprimirTextoCentrado "test" 10 => "   test   "
 function imprimirTextoCentrado {
-  pad_delante="$((($2 - ${#1}) / 2))"
-  pad_detras=$(($2 - pad_delante - ${#1}))
+  local pad_delante="$((($2 - ${#1}) / 2))"
+  local pad_detras=$(($2 - pad_delante - ${#1}))
   printf "%*s%s%*s\n" "$pad_delante" "" "$1" "$pad_detras" ""
 }
 
@@ -448,19 +447,21 @@ function imprimirTextoCentrado {
 # Muestra el menú de juego. Esta es la función más importante.
 function mJugar {
   # Choose pokemons 
-  n_jug=$(buscarNumPoke "$POKEMON_JUGADOR")
-  n_enem=$(randRange 0 151)
-  poke_enem=${NOMBRES_POKEMON[$n_enem]}
+  # shellcheck disable=SC2155
+  local n_jug=$(buscarNumPoke "$POKEMON_JUGADOR")
+  # shellcheck disable=SC2155
+  local n_enem=$(randRange 0 151)
+  local poke_enem=${NOMBRES_POKEMON[$n_enem]}
 
   impirmirDibujosNum "$n_jug" "$n_enem"
   printf "%s%16s%s\n" "$(imprimirTextoCentrado "$POKEMON_JUGADOR" 32)" "" "$(imprimirTextoCentrado "$poke_enem" 32)"
 
-  # Sleep for intensity
   printf "%s pelea contra %s" "$POKEMON_JUGADOR" "$poke_enem"
-  sleeps=$(randRange 2 6)
   # No podemos utilizar un for in {0..$sleeps..1} porque se evalúa el {} antes
   # que el $sleeps, haciendo que la iteración no funcione (itera desde cero)
   # hasta una cadena de caracteres.
+  # shellcheck disable=SC2155
+  local sleeps=$(randRange 2 6)
   for (( i=0; i<=sleeps; i++ )); do
     printf '.'
     
@@ -469,10 +470,11 @@ function mJugar {
   printf "\n"
 
   # Check who wins
-  tipo_jug=${TIPOS_POKEMON[$n_jug]}
-  tipo_enem=$(echo "${TIPOS_POKEMON[$n_enem]}" | cut -b -2)
+  local tipo_jug=${TIPOS_POKEMON[$n_jug]}
+  # shellcheck disable=SC2155
+  local tipo_enem=$(echo "${TIPOS_POKEMON[$n_enem]}" | cut -b -2)
 
-  linea_tipo=${TABLA_TIPOS[$tipo_jug]}
+  local linea_tipo=${TABLA_TIPOS[$tipo_jug]}
   # Si el tipo del enemigo está en la parte de la izquierda de la línea de la tabla
   # de tipos correspondiente al tipo del pokemon del jugador (con el formato que hemos 
   # puesto), el enemigo ha ganado, si está en la derecha el enemigo ha perdido
@@ -498,8 +500,8 @@ function mJugar {
 function maxDicc {
   local -n dicc=$1
 
-  max_key="Ninguno"
-  max_val=0
+  local max_key="Ninguno"
+  local max_val=0
 
   for key in "${!dicc[@]}"; do
     if [[ ${dicc[$key]} -gt $max_val ]]; then
@@ -528,16 +530,18 @@ function mEstadisticas {
   declare -A poke_ganados_rival
 
   while read -r line; do
-    ncombates=$((ncombates+1))
+    local ncombates=$((ncombates+1))
 
     # Comprobamos ganador
-    ganador=$(cut -d '|' -f 6 <<< "$line" | cut -b 2)
+    # shellcheck disable=SC2155
+    local ganador=$(cut -d '|' -f 6 <<< "$line" | cut -b 2)
     case $ganador in
       'J')
         nganados=$((nganados+1))
 
         # Nombre del pokemon ganador
-        poke_nombre=$(echo "$line" | cut -d'|' -f4)
+        # shellcheck disable=SC2155
+        local poke_nombre=$(echo "$line" | cut -d'|' -f4)
 
         # Hay que comprobar que el valor ya está en el array antes de incrementarlo
         if [[ -v poke_ganados_jugador[$poke_nombre] ]]; then
@@ -549,7 +553,8 @@ function mEstadisticas {
 
       'R')
         # Nombre del pokemon ganador
-        poke_nombre=$(echo "$line" | cut -d'|' -f5)
+        # shellcheck disable=SC2155
+        local poke_nombre=$(echo "$line" | cut -d'|' -f5)
 
         # Hay que comprobar que el valor ya está en el array antes de incrementarlo
         if [[ -v poke_ganados_rival[$poke_nombre] ]]; then
@@ -562,8 +567,10 @@ function mEstadisticas {
   done < "$LOG_FILE"
 
   # Calculamos los pokemons con más victorias
-  max_pgj=$(maxDicc poke_ganados_jugador)
-  max_pgr=$(maxDicc poke_ganados_rival)
+  # shellcheck disable=SC2155
+  local max_pgj=$(maxDicc poke_ganados_jugador)
+  # shellcheck disable=SC2155
+  local max_pgr=$(maxDicc poke_ganados_rival)
 
   # Imprimimos la información
   echo "Número total de combates: $ncombates"
@@ -623,8 +630,10 @@ function log {
   resultadoComprobarArchivo=$?
 
   if [[ "$resultadoComprobarArchivo" -eq 0 || "$resultadoComprobarArchivo" == 2 ]]; then
-      fecha=$(date +%d/%m/%Y)
-      hora=$(date +%H:%M) 
+      # shellcheck disable=SC2155
+      local fecha=$(date +%d/%m/%Y)
+      # shellcheck disable=SC2155
+      local hora=$(date +%H:%M) 
       if ! echo "$fecha | $hora | $1 | $2 | $3 | $4" >> "$LOG_FILE"; then
         perro "No se ha podido guardar la partida en el fichero de log"
       fi
