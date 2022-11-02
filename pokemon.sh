@@ -105,7 +105,7 @@ function comprobarArchivoRW {
     return 1
   fi
   if ! [[ -f "$1" ]]; then
-    if errorSiNoExiste; then
+    if $3; then
       perro "$2 no existe."
     else
       piso "$2 no existe."
@@ -616,8 +616,6 @@ function log {
     local hora=$(date +%H:%M) 
     if ! echo "$fecha | $hora | $1 | $2 | $3 | $4" >> "$LOG_FILE"; then
       perro "No se ha podido guardar la partida en el fichero de log"
-    else
-      pgood "Fichero de logs creado"
     fi
   else
     perro "No se ha podido guardar la partida en el fichero de log"
