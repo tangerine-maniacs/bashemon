@@ -298,6 +298,8 @@ function mConfig {
         if existeEnLista "$nuevo_pokemon" NOMBRES_POKEMON; then
           if [[ -z "$POKEMON_JUGADOR" ]]; then
             pgood "¡Hola $nuevo_pokemon!"
+          elif [[ "$nuevo_pokemon" == "$POKEMON_JUGADOR" ]]; then
+            pgood "¡$POKEMON_JUGADOR ya era tu pokemon!"
           else
             pgood "¡Adiós $POKEMON_JUGADOR, hola $nuevo_pokemon!"
           fi
@@ -332,7 +334,7 @@ function mConfig {
           # ComprobarArchivoRW ya ha mostrado el error
           :
         elif [[ "$resultadoComprobarArchivo" -eq 2 ]]; then
-          if (echo "" > "$nuevo_fichero") 2> /dev/null; then
+          if (printf "" > "$nuevo_fichero") 2> /dev/null; then
             pgood "¡Fichero de logs creado!"
 
             LOG_FILE=$nuevo_fichero
