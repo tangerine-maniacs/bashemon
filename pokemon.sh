@@ -627,6 +627,8 @@ function log {
       hora=$(date +%H:%M) 
       if ! echo "$fecha | $hora | $1 | $2 | $3 | $4" >> "$LOG_FILE"; then
         perro "No se ha podido guardar la partida en el fichero de log"
+      else
+        pgood "Fichero de logs creado"
       fi
   else
     perro "No se ha podido guardar la partida en el fichero de log"
