@@ -272,6 +272,8 @@ function mConfig {
         if existeEnLista "$nuevo_pokemon" NOMBRES_POKEMON; then
           if [[ -z "$POKEMON_JUGADOR" ]]; then
             pgood "¡Hola $nuevo_pokemon!"
+          elif [[ "$nuevo_pokemon" == "$POKEMON_JUGADOR" ]]; then
+            pgood "¡$POKEMON_JUGADOR ya era tu pokemon!"
           else
             pgood "¡Adiós $POKEMON_JUGADOR, hola $nuevo_pokemon!"
           fi
