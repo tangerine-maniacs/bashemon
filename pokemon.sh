@@ -610,6 +610,9 @@ function log {
   local resultadoComprobarArchivo
   comprobarArchivoRW "$LOG_FILE" "El fichero de log" false
   resultadoComprobarArchivo=$?
+  if [[ $resultadoComprobarArchivo -eq 2 ]]; then
+    piso "Se va a intentar crear el fichero de log"
+  fi
 
   if [[ "$resultadoComprobarArchivo" -eq 0 || "$resultadoComprobarArchivo" -eq 2 ]]; then
     local fecha=$(date +%d/%m/%Y)
